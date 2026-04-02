@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>정보부 민원 접수</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -13,7 +14,17 @@
       --apple-subtext: #86868b;
       --apple-input-bg: #f5f5f7;
     }
-    body { font-family: 'Inter', -apple-system, sans-serif; background-color: var(--apple-bg); margin: 0; color: var(--apple-text); -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; align-items: center; padding-top: 60px; }
+    body { 
+      font-family: 'Inter', -apple-system, sans-serif; 
+      background-color: var(--apple-bg); 
+      margin: 0; 
+      color: var(--apple-text); 
+      -webkit-font-smoothing: antialiased; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      padding-top: 60px; 
+    }
     .container { width: 100%; max-width: 500px; padding: 0 24px; box-sizing: border-box; text-align: center; }
     h1 { font-size: 40px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 8px; }
     p.subtitle { font-size: 19px; color: var(--apple-subtext); margin-bottom: 48px; }
@@ -24,14 +35,51 @@
     .email-group { display: flex; gap: 8px; align-items: center; }
     .email-group input { flex: 1; }
     .email-group select { flex: 1.5; font-size: 14px; }
-    input, select, textarea { width: 100%; background: var(--apple-input-bg); border: none; border-radius: 12px; padding: 16px; font-size: 16px; color: var(--apple-text); font-family: inherit; box-sizing: border-box; transition: all 0.2s ease; outline: none; }
-    input:focus, select:focus, textarea:focus { background: #ffffff; box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.1); }
-    .submit-btn { background: var(--apple-blue); color: white; border: none; width: 100%; padding: 18px; border-radius: 14px; font-size: 17px; font-weight: 600; cursor: pointer; margin-top: 10px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    input, select, textarea { 
+      width: 100%; 
+      background: var(--apple-input-bg); 
+      border: none; 
+      border-radius: 12px; 
+      padding: 16px; 
+      font-size: 16px; 
+      color: var(--apple-text); 
+      font-family: inherit; 
+      box-sizing: border-box; 
+      transition: all 0.2s ease; 
+      outline: none; 
+    }
+    input:focus, select:focus, textarea:focus { 
+      background: #ffffff; 
+      box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.1); 
+    }
+    .submit-btn { 
+      background: var(--apple-blue); 
+      color: white; 
+      border: none; 
+      width: 100%; 
+      padding: 18px; 
+      border-radius: 14px; 
+      font-size: 17px; 
+      font-weight: 600; 
+      cursor: pointer; 
+      margin-top: 10px; 
+      transition: all 0.2s; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      gap: 10px; 
+    }
     .submit-btn:hover { opacity: 0.9; transform: scale(0.99); }
     .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     #success-msg { display: none; padding: 60px 0; }
-    /* 로딩 스피너 애니메이션 */
-    .spinner { width: 20px; height: 20px; border: 3px solid rgba(255,255,255,.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s linear infinite; display: none; }
+    .spinner { 
+      width: 20px; height: 20px; 
+      border: 3px solid rgba(255,255,255,.3); 
+      border-radius: 50%; 
+      border-top-color: #fff; 
+      animation: spin 1s linear infinite; 
+      display: none; 
+    }
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
@@ -98,16 +146,22 @@
   </div>
 
   <script>
-    // ⚠️ 여기에 본인의 구글 웹 앱 배포 URL을 넣으세요!
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbzxI3Pi8CBU-fQSg-xn2uOn1XU3jvkKXOpoBGoHh-C49O5Jpq7PQd6l5eoum3E-rpC3/exec"; 
+    // ⚠️ [중요] 본인의 구글 앱스 스크립트 웹 앱 URL을 여기에 붙여넣으세요!
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzuMK8HJ8is67iPU-cNH6KuKIZoUSeU30V5HmTw_ziIDIcDFznWPwRzG5RS4xwbg0H4/exec"; 
 
     window.onload = function() {
       const g = document.getElementById('grade');
       const c = document.getElementById('classNum');
       const s = document.getElementById('studentNum');
       for(let i=1; i<=3; i++) g.add(new Option(i + "학년", i));
-      for(let i=1; i<=12; i++) c.add(new Option(i + "반", i < 10 ? "0"+i : i));
-      for(let i=1; i<=30; i++) s.add(new Option(i + "번", i < 10 ? "0"+i : i));
+      for(let i=1; i<=12; i++) {
+        const val = i < 10 ? "0"+i : i;
+        c.add(new Option(i + "반", val));
+      }
+      for(let i=1; i<=30; i++) {
+        const val = i < 10 ? "0"+i : i;
+        s.add(new Option(i + "번", val));
+      }
     };
 
     function submitData() {
@@ -126,7 +180,6 @@
       const spinner = document.getElementById('btn-spinner');
       const btnText = document.getElementById('btn-text');
 
-      // 로딩 상태 표시
       btn.disabled = true;
       spinner.style.display = 'block';
       btnText.innerText = "접수 중...";
@@ -139,19 +192,20 @@
         detail: document.getElementById('detail').value
       };
 
-      // Vercel에서 Google로 데이터 전송
+      // [핵심] Vercel 환경에서 구글 시트로 데이터를 전송하는 로직
       fetch(GAS_URL, {
         method: "POST",
-        mode: "no-cors", // 중요: GAS API 통신 설정
+        mode: "no-cors", // 보안 정책 우회
+        headers: { "Content-Type": "text/plain" },
         body: JSON.stringify(data)
       })
       .then(() => {
-        // 전송 성공 시 화면 전환
+        // 전송 완료 시 화면 전환
         document.getElementById('request-form').style.display = 'none';
         document.getElementById('success-msg').style.display = 'block';
       })
       .catch(err => {
-        alert("오류가 발생했습니다: " + err);
+        alert("전송 중 오류가 발생했습니다: " + err);
         btn.disabled = false;
         spinner.style.display = 'none';
         btnText.innerText = "접수하기";
