@@ -1,73 +1,116 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
   <base target="_top">
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>정보부 관리자 대시보드</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
-    :root { --apple-blue: #0071e3; --apple-bg: #f5f5f7; --apple-card: rgba(255, 255, 255, 0.8); --apple-text: #1d1d1f; --apple-subtext: #86868b; }
-    body { font-family: 'Inter', sans-serif; background-color: var(--apple-bg); margin: 0; color: var(--apple-text); -webkit-font-smoothing: antialiased; }
-    
-    /* 로그인 화면 스타일 */
+    :root {
+      --apple-blue: #0071e3;
+      --apple-bg: #f5f5f7;
+      --apple-card: rgba(255, 255, 255, 0.8);
+      --apple-text: #1d1d1f;
+      --apple-subtext: #86868b;
+    }
+
+    body { 
+      font-family: 'Inter', -apple-system, sans-serif; 
+      background-color: var(--apple-bg); 
+      margin: 0; 
+      color: var(--apple-text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* 🔐 로그인 화면 */
     #login-overlay { 
       position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
       background: #ffffff; display: flex; flex-direction: column; 
       align-items: center; justify-content: center; z-index: 1000;
     }
     .login-box { width: 100%; max-width: 320px; text-align: center; }
-    .login-box h1 { font-size: 24px; font-weight: 600; margin-bottom: 30px; }
+    .login-box h1 { font-size: 24px; font-weight: 600; margin-bottom: 30px; letter-spacing: -0.02em; }
     .pw-input { 
-      width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #d2d2d7; 
-      background: #f5f5f7; font-size: 16px; margin-bottom: 15px; box-sizing: border-box; text-align: center;
+      width: 100%; padding: 16px; border-radius: 12px; border: 1px solid #d2d2d7; 
+      background: #f5f5f7; font-size: 16px; margin-bottom: 16px; box-sizing: border-box; text-align: center;
     }
-    .pw-input:focus { border-color: var(--apple-blue); outline: none; background: #fff; }
-    
-    /* 대시보드 레이아웃 (기존 유지) */
-    #admin-dashboard { display: none; } /* 처음엔 숨김 */
-    .sidebar { width: 280px; background: var(--apple-card); backdrop-filter: blur(20px); height: 100vh; position: fixed; border-right: 1px solid rgba(0,0,0,0.05); padding: 40px 24px; box-sizing: border-box; }
+    .pw-input:focus { border-color: var(--apple-blue); outline: none; background: #fff; box-shadow: 0 0 0 4px rgba(0,113,227,0.1); }
+
+    /* 👨‍🏫 대시보드 레이아웃 */
+    #admin-dashboard { display: none; }
+    .sidebar { 
+      width: 280px; background: var(--apple-card); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      height: 100vh; position: fixed; border-right: 1px solid rgba(0,0,0,0.05); padding: 48px 24px; box-sizing: border-box; 
+      display: flex; flex-direction: column; justify-content: space-between;
+    }
     .main-content { margin-left: 280px; flex: 1; padding: 60px 80px; max-width: 900px; }
-    .card { background: #ffffff; border-radius: 20px; padding: 32px; margin-bottom: 24px; box-shadow: 0 8px 30px rgba(0,0,0,0.04); }
-    .submit-btn { background: var(--apple-blue); color: white; border: none; padding: 12px 24px; border-radius: 40px; cursor: pointer; font-weight: 600; }
+
+    .stats-label { font-size: 13px; font-weight: 600; color: var(--apple-subtext); text-transform: uppercase; letter-spacing: 0.05em; }
+    .stats-num { font-size: 64px; font-weight: 600; display: block; margin: 8px 0; letter-spacing: -0.03em; }
+
+    .card { 
+      background: #ffffff; border-radius: 20px; padding: 32px; margin-bottom: 24px; 
+      box-shadow: 0 8px 30px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.02);
+    }
+    .name-tag { font-weight: 600; font-size: 20px; margin-bottom: 12px; color: var(--apple-blue); }
+    .content-box { font-size: 16px; line-height: 1.6; color: #424245; margin-bottom: 24px; background: #f9f9fb; padding: 20px; border-radius: 14px; }
+
+    textarea { 
+      width: 100%; height: 100px; padding: 16px; border: 1px solid #d2d2d7; border-radius: 12px; 
+      box-sizing: border-box; font-family: inherit; font-size: 15px; margin-bottom: 16px; outline: none; resize: none;
+    }
+    .submit-btn { 
+      background: var(--apple-blue); color: white; border: none; padding: 12px 24px; 
+      border-radius: 40px; cursor: pointer; font-weight: 600; font-size: 15px; transition: 0.2s;
+    }
+    .submit-btn:hover { opacity: 0.8; }
+
+    .loader { text-align: center; padding: 100px; color: var(--apple-subtext); font-size: 17px; }
   </style>
 </head>
 <body>
 
   <div id="login-overlay">
     <div class="login-box">
-      <h1>관리자 로그인</h1>
-      <input type="password" id="adminPw" class="pw-input" placeholder="비밀번호 입력" onkeypress="if(event.keyCode==13) checkPassword()">
+      <h1>Admin Login</h1>
+      <input type="password" id="adminPw" class="pw-input" placeholder="비밀번호" onkeypress="if(event.keyCode==13) checkPassword()">
       <button class="submit-btn" style="width: 100%;" onclick="checkPassword()">로그인</button>
-      <p id="error-msg" style="color: #ff3b30; font-size: 13px; margin-top: 15px; display: none;">비밀번호가 일치하지 않습니다.</p>
+      <p id="error-msg" style="color: #ff3b30; font-size: 13px; margin-top: 16px; display: none;">비밀번호가 올바르지 않습니다.</p>
     </div>
   </div>
 
   <div id="admin-dashboard">
     <div class="sidebar">
-      <div class="stats-label" style="font-size: 14px; font-weight: 600; color: var(--apple-subtext);">TODAY'S RESOLVED</div>
-      <span id="todayCount" style="font-size: 56px; font-weight: 600; display: block; margin: 10px 0;">0</span>
-      <button class="submit-btn" style="background: #86868b; padding: 8px 16px; font-size: 12px;" onclick="logout()">로그아웃</button>
+      <div>
+        <div class="stats-label">Today's Resolved</div>
+        <span id="todayCount" class="stats-num">0</span>
+        <div style="color: var(--apple-subtext); font-size: 14px; line-height: 1.4;">현재까지 해결된 민원입니다.<br>수고 많으십니다!</div>
+      </div>
+      <button class="submit-btn" style="background: #e8e8ed; color: #1d1d1f;" onclick="logout()">로그아웃</button>
     </div>
+
     <div class="main-content">
-      <h2 style="font-size: 32px; margin-bottom: 40px;">민원 관리 대시보드</h2>
-      <div id="list">데이터 동기화 중...</div>
+      <h2 style="font-size: 32px; font-weight: 600; margin-bottom: 40px; letter-spacing: -0.02em;">대기 중인 민원</h2>
+      <div id="list" class="loader">시트에서 데이터를 동기화하는 중...</div>
     </div>
   </div>
 
   <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbzuMK8HJ8is67iPU-cNH6KuKIZoUSeU30V5HmTw_ziIDIcDFznWPwRzG5RS4xwbg0H4/exec"; // ⚠️ 여기에 본인의 URL 꼭 넣으세요!
-    const CORRECT_PW = "1234"; // ⚠️ 실제 사용할 비밀번호로 바꾸세요!
+    // ⚠️ [중요] 본인의 구글 웹 앱 URL과 비밀번호를 설정하세요.
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzhZRxdmk-Rwq8U30fyXq3r2B_jIStoEpSfpBkzG2uJULRicRKhIDPsk-ILvpT8Vp9V/exec"; 
+    const CORRECT_PW = "1234"; 
 
-    // 페이지 로드 시 로그인 상태 확인
     window.onload = function() {
-      if (sessionStorage.getItem("admin_logged_in") === "true") {
+      if (sessionStorage.getItem("admin_auth") === "true") {
         showDashboard();
       }
     };
 
     function checkPassword() {
-      const input = document.getElementById('adminPw').value;
-      if (input === CORRECT_PW) {
-        sessionStorage.setItem("admin_logged_in", "true");
+      const pw = document.getElementById('adminPw').value;
+      if (pw === CORRECT_PW) {
+        sessionStorage.setItem("admin_auth", "true");
         showDashboard();
       } else {
         document.getElementById('error-msg').style.display = 'block';
@@ -77,8 +120,7 @@
 
     function showDashboard() {
       document.getElementById('login-overlay').style.display = 'none';
-      document.getElementById('admin-dashboard').style.display = 'block';
-      document.body.style.display = 'flex';
+      document.getElementById('admin-dashboard').style.display = 'flex';
       loadData();
     }
 
@@ -87,36 +129,80 @@
       location.reload();
     }
 
-    // 데이터 로드 로직 (기존과 동일)
+    // 시트 데이터 가져오기 (GET)
     function loadData() {
       fetch(`${GAS_URL}?mode=admin_data`)
         .then(res => res.json())
-        .then(data => { renderList(data); updateStats(data); });
+        .then(data => {
+          renderList(data);
+          updateStats(data);
+        })
+        .catch(err => {
+          document.getElementById('list').innerHTML = "데이터 로드 실패: " + err;
+        });
     }
 
     function renderList(data) {
       const listDiv = document.getElementById('list');
-      if (!data || data === "EMPTY" || data.length === 0) { listDiv.innerHTML = "모든 업무 완료! 🎉"; return; }
+      if (data === "EMPTY" || !data || data.length === 0) {
+        listDiv.innerHTML = "<div class='card' style='text-align:center;'>대기 중인 민원이 없습니다. 🎉</div>";
+        return;
+      }
       listDiv.innerHTML = "";
       data.forEach((row, index) => {
-        if (row[6] === "완료 ✨") return;
+        if (row[6] === "완료 ✨") return; // G열 상태 확인
+
         const card = document.createElement('div');
         card.className = 'card';
-        card.innerHTML = `<div class="name-tag" style="font-weight:600; font-size:20px; margin-bottom:12px;">${row[1]} ${row[2]}</div><div style="background:#f9f9fb; padding:15px; border-radius:12px; margin-bottom:20px;">${row[5]}</div><textarea id="msg-${index}" style="width:100%; height:80px; margin-bottom:15px; border-radius:10px; border:1px solid #ddd; padding:10px;"></textarea><div style="text-align:right;"><button class="submit-btn" onclick="send(${index})">처리 완료</button></div>`;
+        card.innerHTML = `
+          <div class="name-tag">${row[1]} ${row[2]} (${row[3]})</div>
+          <div class="content-box"><strong>민원 내용:</strong><br>${row[5]}</div>
+          <textarea id="reply-${index}" placeholder="학생에게 보낼 답변을 입력하세요..."></textarea>
+          <div style="text-align: right;">
+            <button class="submit-btn" onclick="sendReply(${index}, ${index})">처리 완료</button>
+          </div>
+        `;
         listDiv.appendChild(card);
       });
+      if(listDiv.innerHTML === "") listDiv.innerHTML = "모든 민원이 해결되었습니다! 👏";
     }
 
     function updateStats(data) {
+      if(data === "EMPTY") return;
       const today = new Date().toLocaleDateString();
-      const count = data.filter(row => new Date(row[0]).toLocaleDateString() === today && row[6] === "완료 ✨").length;
+      const count = data.filter(row => {
+        const rowDate = new Date(row[0]).toLocaleDateString();
+        return rowDate === today && row[6] === "완료 ✨";
+      }).length;
       document.getElementById('todayCount').innerText = count;
     }
 
-    function send(idx) {
-      const msg = document.getElementById('msg-'+idx).value;
-      fetch(GAS_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "complete", rowIdx: idx, message: msg }) })
-      .then(() => { alert("완료!"); location.reload(); });
+    // 처리 완료 전송 (POST)
+    function sendReply(uiIdx, dataIdx) {
+      const msg = document.getElementById('reply-' + uiIdx).value;
+      if (!msg) return alert("답변 내용을 입력해 주세요.");
+
+      const btn = event.target;
+      btn.innerText = "처리 중...";
+      btn.disabled = true;
+
+      fetch(GAS_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({
+          action: "complete",
+          rowIdx: dataIdx,
+          message: msg
+        })
+      }).then(() => {
+        alert("처리가 완료되었습니다.");
+        location.reload();
+      }).catch(err => {
+        alert("오류 발생: " + err);
+        btn.innerText = "처리 완료";
+        btn.disabled = false;
+      });
     }
   </script>
 </body>
