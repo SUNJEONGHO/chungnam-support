@@ -1,45 +1,87 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>정보부 관리자 대시보드</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <style>
-    :root { --apple-blue: #0071e3; --apple-bg: #f5f5f7; }
-    body { font-family: -apple-system, sans-serif; background: var(--apple-bg); margin: 0; display: flex; }
-    #stats-panel { width: 350px; padding: 40px 20px; background: #fff; height: 100vh; position: fixed; border-right: 1px solid #ddd; overflow-y: auto; }
-    #list-panel { margin-left: 390px; padding: 40px; flex: 1; }
-    .card { background: #fff; border-radius: 18px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-    .btn { background: var(--apple-blue); color: #fff; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: 600; }
-    textarea { width: 100%; height: 70px; border-radius: 10px; border: 1px solid #ddd; padding: 10px; margin: 10px 0; box-sizing: border-box; resize: none; }
-    h3 { font-size: 16px; margin-bottom: 15px; color: #1d1d1f; }
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <style>
+    :root { --apple-blue: #0071e3; --apple-bg: #f5f5f7; --apple-text: #1d1d1f; --apple-subtext: #86868b; }
+    body { font-family: 'Inter', -apple-system, sans-serif; background: var(--apple-bg); margin: 0; display: flex; color: var(--apple-text); -webkit-font-smoothing: antialiased; }
+    
+    /* 🔐 로그인 화면 */
+    #login-screen { position: fixed; inset: 0; background: #fff; display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .login-card { width: 300px; text-align: center; }
+    .pw-input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #d2d2d7; background: #f5f5f7; margin-bottom: 12px; text-align: center; box-sizing: border-box; outline: none; }
+    
+    /* 👨‍🏫 사이드바 (통계 패널) */
+    #stats-panel { width: 340px; background: #ffffff; height: 100vh; position: fixed; border-right: 1px solid rgba(0,0,0,0.05); padding: 40px 24px; box-sizing: border-box; overflow-y: auto; }
+    
+    /* 📋 메인 컨텐츠 (민원 리스트) */
+    #main-dashboard { display: none; margin-left: 340px; flex: 1; padding: 60px 50px; max-width: 800px; }
+    
+    .card { background: #fff; border-radius: 20px; padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.02); }
+    .btn { background: var(--apple-blue); color: #fff; border: none; padding: 12px 24px; border-radius: 20px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+    .btn:hover { opacity: 0.8; }
+    
+    textarea { width: 100%; height: 100px; border-radius: 12px; border: 1px solid #d2d2d7; padding: 14px; margin: 12px 0; box-sizing: border-box; resize: none; font-family: inherit; font-size: 14px; }
+    h3 { font-size: 15px; font-weight: 600; color: var(--apple-subtext); margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0.05em; }
+    
+    .chart-container { position: relative; height: 180px; margin-bottom: 30px; }
+    .loader { text-align: center; padding: 100px; color: var(--apple-subtext); }
   </style>
 </head>
 <body>
 
-  <div id="stats-panel">
-    <div style="text-align: center; margin-bottom: 30px;">
-        <img src="https://drive.google.com/uc?export=view&id=1oEGFW7zdmyLlEJPVSKDcUaWTC7fV05jV" style="width: 50px;"> <h2 style="font-size: 18px;">Dashboard</h2>
-    </div>
-    <div class="card">
-      <h3>요일별 접수 현황</h3>
-      <canvas id="dayChart"></canvas>
-    </div>
-    <div class="card">
-      <h3>민원 유형 비율</h3>
-      <canvas id="typeChart"></canvas>
+  <div id="login-screen">
+    <div class="login-card">
+      <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbDpzcGFjZT0icHJlc2VydmUiIHdpZHRoPSIzNzQuMTU1MjciIGhlaWdodD0iNDEzLjEzNzc5IiB2aWV3Qm94PSIwIDAgMzc0LjE1NTI3IDQxMy4xMzc3OSI+PGRlZnM+PGNsaXBQYXRoIGlkPSJhIiBjbGlwUGF0aFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTTAgMTg0Mi41MmgxODcwLjg3VjBIMFoiLz48L2NsaXBQYXRoPjwvZGVmcz48ZyBjbGlwLXBhdGg9InVybCgjYSkiIHN0eWxlPSJzdHJva2Utd2lkdGg6Mi44OTU0MiIgdHJhbnNmb3JtPSJtYXRyaXgoLjQ2MDUgMCAwIC0uNDYwNSAtMjQ0LjMxOCA2MzIuMDU1KSI+PGcgc3R5bGU9InN0cm9rZS13aWR0aDoyLjg5NTQyIj48cGF0aCBkPSJNMCAwYy00MC45MSAwLTc0LjA1NyAzMy4xOTUtNzQuMDU3IDc0LjA4MyAwIDQwLjg5OSAzMy4xNDcgNzQuMDYyIDc0LjA1NyA3NC4wNjIgNDAuODg5IDAgNzQuMDY0LTMzLjE2MyA3NC4wNjQtNzQuMDYyQzc0LjA2NCAzMS45NjYgNDIuMTE3IDAgMCAwbTQwNi4wNTggMzQyLjAwMmMtLjAzNyAyNC40MTQtMTkuOTIzIDQwLjY1Mi0zOS44NjEgNDAuNjMxLTU5LjA1My0uMDYtMTYzLjQzNi4wNTMtMjQ1LjI4Ny0uMDczLTQ2Ljk1Ny0uMDYtNzQuMDcxLTM3Ljk2My03NC4wNzEtNzQuMDYxIDAtMjcuMjI2LS4wNjgtMzcuNTMyLS4wNjgtMzcuNTMySDgwLjU3NnMtMi44NC0zOC4xNDMtNC4yNDgtNDYuMzg4Yy00LjEzOC0yNC4zMTktMjEuMTM4LTM4LjIwNi00NS44NzktNDAuNzUtMTkuNTk4LTIuMDM0LTc2LjI5MS00LjA5Ny03Ni4yOTEtNC4wOTdWNjAuNDMzczMuMTg1LS41MjMgNDcuMDA4LTcuMTUzQzE0LjQ4NiA1MS4yNiAyNC4zNjcgNDMuODQ1IDAgMCIgc3R5bGU9ImZpbGw6IzBiMzE5MDtmaWxsLW9wYWNpdHk6MTtmaWxsLXJ1bGU6bm9uemVybztzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6Mi44OTU0MiIgdHJhbnNmb3JtPSJtYXRyaXgoODEyLjc0OCAxMTM4LjMyOCkiLz48L2c+PC9nPjwvc3ZnPg==" style="width: 60px; margin-bottom: 20px;">
+      <h2 style="font-size: 22px; font-weight: 600; margin-bottom: 30px;">Admin Access</h2>
+      <input type="password" id="pw" class="pw-input" placeholder="비밀번호" onkeypress="if(event.keyCode==13) login()">
+      <button class="btn" style="width: 100%;" onclick="login()">로그인</button>
     </div>
   </div>
 
-  <div id="list-panel">
-    <h1 style="font-size: 32px;">대기 중인 민원</h1>
-    <div id="list">불러오는 중...</div>
+  <div id="stats-panel">
+    <div style="text-align: center; margin-bottom: 40px;">
+        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbDpzcGFjZT0icHJlc2VydmUiIHdpZHRoPSIzNzQuMTU1MjciIGhlaWdodD0iNDEzLjEzNzc5IiB2aWV3Qm94PSIwIDAgMzc0LjE1NTI3IDQxMy4xMzc3OSI+PGRlZnM+PGNsaXBQYXRoIGlkPSJhIiBjbGlwUGF0aFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTTAgMTg0Mi41MmgxODcwLjg3VjBIMFoiLz48L2NsaXBQYXRoPjwvZGVmcz48ZyBjbGlwLXBhdGg9InVybCgjYSkiIHN0eWxlPSJzdHJva2Utd2lkdGg6Mi44OTU0MiIgdHJhbnNmb3JtPSJtYXRyaXgoLjQ2MDUgMCAwIC0uNDYwNSAtMjQ0LjMxOCA2MzIuMDU1KSI+PGcgc3R5bGU9InN0cm9rZS13aWR0aDoyLjg5NTQyIj48cGF0aCBkPSJNMCAwYy00MC45MSAwLTc0LjA1NyAzMy4xOTUtNzQuMDU3IDc0LjA4MyAwIDQwLjg5OSAzMy4xNDcgNzQuMDYyIDc0LjA1NyA3NC4wNjIgNDAuODg5IDAgNzQuMDY0LTMzLjE2MyA3NC4wNjQtNzQuMDYyQzc0LjA2NCAzMS45NjYgNDIuMTE3IDAgMCAwbTQwNi4wNTggMzQyLjAwMmMtLjAzNyAyNC40MTQtMTkuOTIzIDQwLjY1Mi0zOS44NjEgNDAuNjMxLTU5LjA1My0uMDYtMTYzLjQzNi4wNTMtMjQ1LjI4Ny0uMDczLTQ2Ljk1Ny0uMDYtNzQuMDcxLTM3Ljk2My03NC4wNzEtNzQuMDYxIDAtMjcuMjI2LS4wNjgtMzcuNTMyLS4wNjgtMzcuNTMySDgwLjU3NnMtMi44NC0zOC4xNDMtNC4yNDgtNDYuMzg4Yy00LjEzOC0yNC4zMTktMjEuMTM4LTM4LjIwNi00NS44NzktNDAuNzUtMTkuNTk4LTIuMDM0LTc2LjI5MS00LjA5Ny03Ni4yOTEtNC4wOTdWNjAuNDMzczMuMTg1LS41MjMgNDcuMDA4LTcuMTUzQzE0LjQ4NiA1MS4yNiAyNC4zNjcgNDMuODQ1IDAgMCIgc3R5bGU9ImZpbGw6IzBiMzE5MDtmaWxsLW9wYWNpdHk6MTtmaWxsLXJ1bGU6bm9uemVybztzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6Mi44OTU0MiIgdHJhbnNmb3JtPSJtYXRyaXgoODEyLjc0OCAxMTM4LjMyOCkiLz48L2c+PC9nPjwvc3ZnPg==" style="width: 60px;">
+        <h2 style="font-size: 18px; margin-top: 15px; letter-spacing: -0.02em;">CNHS INFO DEPT</h2>
+    </div>
+    
+    <div class="card" style="box-shadow:none; border:1px solid #eee;">
+      <h3>요일별 현황</h3>
+      <div class="chart-container"><canvas id="dayChart"></canvas></div>
+    </div>
+    
+    <div class="card" style="box-shadow:none; border:1px solid #eee;">
+      <h3>유형별 비율</h3>
+      <div class="chart-container"><canvas id="typeChart"></canvas></div>
+    </div>
+  </div>
+
+  <div id="main-dashboard">
+    <h1 style="font-size: 32px; font-weight: 600; margin-bottom: 40px;">대기 중인 민원</h1>
+    <div id="list" class="loader">시트에서 데이터를 동기화하는 중...</div>
   </div>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbx-jcWB-bUvPlgbk9Pbij3aH9VlkEdmRih9ES2Y9RWPhs8u7jPOHAYArNhs1gtzXok9/exec";
+    // ⚠️ 여기에 본인의 구글 웹 앱 주소를 꼭 넣으세요!
+    const API_URL = "https://script.google.com/macros/s/AKfycbxYk2iP6VkvvHLJez3oqfeJAELThbnshHR0RvxY5R-c5x2kxNkhaTal4WVssYKI5sdu/exec"; 
+    const PASS = "1234";
+
     let dayChartObj, typeChartObj;
 
-    async function load() {
+    function login() {
+      if(document.getElementById('pw').value === PASS) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('main-dashboard').style.display = 'block';
+        fetchData();
+      } else { alert("비밀번호가 틀렸습니다."); }
+    }
+
+    async function fetchData() {
       const res = await fetch(`${API_URL}?mode=admin_data`);
       const data = await res.json();
       renderCharts(data.dayStats, data.typeStats);
@@ -47,60 +89,67 @@
     }
 
     function renderCharts(dayData, typeData) {
-      // 요일 막대 그래프
+      // 요일 그래프
       const dCtx = document.getElementById('dayChart').getContext('2d');
       if(dayChartObj) dayChartObj.destroy();
       dayChartObj = new Chart(dCtx, {
         type: 'bar',
         data: {
-          labels: Object.keys(dayData),
-          datasets: [{ data: Object.values(dayData), backgroundColor: '#0071e3', borderRadius: 5 }]
+          labels: ['월','화','수','목','금','토','일'],
+          datasets: [{ data: ['월','화','수','목','금','토','일'].map(d => dayData[d] || 0), backgroundColor: '#0071e3', borderRadius: 4 }]
         },
-        options: { plugins: { legend: { display: false } } }
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
       });
 
-      // 유형 원형 그래프
+      // 유형 그래프
       const tCtx = document.getElementById('typeChart').getContext('2d');
       if(typeChartObj) typeChartObj.destroy();
       typeChartObj = new Chart(tCtx, {
         type: 'doughnut',
         data: {
           labels: Object.keys(typeData),
-          datasets: [{ data: Object.values(typeData), backgroundColor: ['#0071e3', '#34c759', '#ff9f0a'] }]
-        }
+          datasets: [{ data: Object.values(typeData), backgroundColor: ['#0071e3', '#34c759', '#ff9f0a'], borderWidth: 0 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
       });
     }
 
     function renderList(data) {
-      const div = document.getElementById('list');
-      div.innerHTML = "";
-      if(data === "EMPTY") { div.innerHTML = "민원이 없습니다."; return; }
+      const listDiv = document.getElementById('list');
+      if(data === "EMPTY" || !data || data.length === 0) { listDiv.innerHTML = "<div class='card' style='text-align:center;'>현재 대기 중인 민원이 없습니다. 🎉</div>"; return; }
+      
+      listDiv.innerHTML = "";
       data.forEach((row, idx) => {
         if(row[6] === "완료 ✨") return;
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
-          <div style="font-weight:600;">${row[1]} ${row[2]}</div>
-          <div style="color: #424245; margin: 10px 0;">${row[5]}</div>
-          <textarea id="reply-${idx}" placeholder="답변 입력..."></textarea>
-          <div style="text-align: right;"><button class="btn" onclick="done(${idx}, '${row[3]}', '${row[2]}')">완료</button></div>
+          <div style="font-weight:600; font-size:18px; color:var(--apple-blue);">${row[1]} ${row[2]} (${row[3]})</div>
+          <div style="margin:12px 0; color:#424245; line-height:1.6; background:#f9f9fb; padding:15px; border-radius:10px;">${row[5]}</div>
+          <textarea id="reply-${idx}" placeholder="학생에게 보낼 답변을 입력하세요..."></textarea>
+          <div style="text-align:right;"><button class="btn" onclick="done(${idx}, '${row[3]}', '${row[2]}')">처리 완료 및 메일 발송</button></div>
         `;
-        div.appendChild(card);
+        listDiv.appendChild(card);
       });
     }
 
     async function done(idx, email, name) {
       const msg = document.getElementById('reply-'+idx).value;
-      if(!msg) return alert("답변을 입력하세요.");
+      if(!msg) return alert("답변 내용을 입력해 주세요.");
+      
+      const btn = event.target;
+      btn.innerText = "처리 중...";
+      btn.disabled = true;
+
       await fetch(API_URL, {
-        method: "POST", mode: "no-cors",
+        method: "POST",
+        mode: "no-cors",
         body: JSON.stringify({ action: "complete", rowIdx: idx, message: msg, email: email, name: name })
       });
-      alert("처리 및 이메일 발송 완료!");
+      
+      alert("완료되었습니다! 학생에게 이메일이 발송되었습니다.");
       location.reload();
     }
-
-    window.onload = load;
   </script>
 </body>
 </html>
