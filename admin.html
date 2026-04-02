@@ -14,58 +14,28 @@
       --apple-text: #1d1d1f;
       --apple-subtext: #86868b;
     }
-
-    body { 
-      font-family: 'Inter', -apple-system, sans-serif; 
-      background-color: var(--apple-bg); 
-      margin: 0; 
-      color: var(--apple-text);
-      -webkit-font-smoothing: antialiased;
-    }
-
+    body { font-family: 'Inter', -apple-system, sans-serif; background-color: var(--apple-bg); margin: 0; color: var(--apple-text); -webkit-font-smoothing: antialiased; }
+    
     /* 🔐 로그인 화면 */
-    #login-overlay { 
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-      background: #ffffff; display: flex; flex-direction: column; 
-      align-items: center; justify-content: center; z-index: 1000;
-    }
+    #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
     .login-box { width: 100%; max-width: 320px; text-align: center; }
     .login-box h1 { font-size: 24px; font-weight: 600; margin-bottom: 30px; letter-spacing: -0.02em; }
-    .pw-input { 
-      width: 100%; padding: 16px; border-radius: 12px; border: 1px solid #d2d2d7; 
-      background: #f5f5f7; font-size: 16px; margin-bottom: 16px; box-sizing: border-box; text-align: center;
-    }
-    .pw-input:focus { border-color: var(--apple-blue); outline: none; background: #fff; box-shadow: 0 0 0 4px rgba(0,113,227,0.1); }
+    .pw-input { width: 100%; padding: 16px; border-radius: 12px; border: 1px solid #d2d2d7; background: #f5f5f7; font-size: 16px; margin-bottom: 16px; box-sizing: border-box; text-align: center; outline: none; }
+    .pw-input:focus { border-color: var(--apple-blue); background: #fff; box-shadow: 0 0 0 4px rgba(0,113,227,0.1); }
 
     /* 👨‍🏫 대시보드 레이아웃 */
     #admin-dashboard { display: none; }
-    .sidebar { 
-      width: 280px; background: var(--apple-card); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      height: 100vh; position: fixed; border-right: 1px solid rgba(0,0,0,0.05); padding: 48px 24px; box-sizing: border-box; 
-      display: flex; flex-direction: column; justify-content: space-between;
-    }
+    .sidebar { width: 280px; background: var(--apple-card); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); height: 100vh; position: fixed; border-right: 1px solid rgba(0,0,0,0.05); padding: 48px 24px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; }
     .main-content { margin-left: 280px; flex: 1; padding: 60px 80px; max-width: 900px; }
-
     .stats-label { font-size: 13px; font-weight: 600; color: var(--apple-subtext); text-transform: uppercase; letter-spacing: 0.05em; }
     .stats-num { font-size: 64px; font-weight: 600; display: block; margin: 8px 0; letter-spacing: -0.03em; }
 
-    .card { 
-      background: #ffffff; border-radius: 20px; padding: 32px; margin-bottom: 24px; 
-      box-shadow: 0 8px 30px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.02);
-    }
+    .card { background: #ffffff; border-radius: 20px; padding: 32px; margin-bottom: 24px; box-shadow: 0 8px 30px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.02); }
     .name-tag { font-weight: 600; font-size: 20px; margin-bottom: 12px; color: var(--apple-blue); }
     .content-box { font-size: 16px; line-height: 1.6; color: #424245; margin-bottom: 24px; background: #f9f9fb; padding: 20px; border-radius: 14px; }
-
-    textarea { 
-      width: 100%; height: 100px; padding: 16px; border: 1px solid #d2d2d7; border-radius: 12px; 
-      box-sizing: border-box; font-family: inherit; font-size: 15px; margin-bottom: 16px; outline: none; resize: none;
-    }
-    .submit-btn { 
-      background: var(--apple-blue); color: white; border: none; padding: 12px 24px; 
-      border-radius: 40px; cursor: pointer; font-weight: 600; font-size: 15px; transition: 0.2s;
-    }
+    textarea { width: 100%; height: 100px; padding: 16px; border: 1px solid #d2d2d7; border-radius: 12px; box-sizing: border-box; font-family: inherit; font-size: 15px; margin-bottom: 16px; outline: none; resize: none; }
+    .submit-btn { background: var(--apple-blue); color: white; border: none; padding: 12px 24px; border-radius: 40px; cursor: pointer; font-weight: 600; font-size: 15px; transition: 0.2s; }
     .submit-btn:hover { opacity: 0.8; }
-
     .loader { text-align: center; padding: 100px; color: var(--apple-subtext); font-size: 17px; }
   </style>
 </head>
@@ -85,26 +55,23 @@
       <div>
         <div class="stats-label">Today's Resolved</div>
         <span id="todayCount" class="stats-num">0</span>
-        <div style="color: var(--apple-subtext); font-size: 14px; line-height: 1.4;">현재까지 해결된 민원입니다.<br>수고 많으십니다!</div>
+        <div style="color: var(--apple-subtext); font-size: 14px; line-height: 1.4;">건의 민원을 해결했습니다.<br>수고 많으십니다!</div>
       </div>
       <button class="submit-btn" style="background: #e8e8ed; color: #1d1d1f;" onclick="logout()">로그아웃</button>
     </div>
-
     <div class="main-content">
-      <h2 style="font-size: 32px; font-weight: 600; margin-bottom: 40px; letter-spacing: -0.02em;">대기 중인 민원</h2>
-      <div id="list" class="loader">시트에서 데이터를 동기화하는 중...</div>
+      <h2 style="font-size: 32px; font-weight: 600; margin-bottom: 40px;">대기 중인 민원</h2>
+      <div id="list" class="loader">데이터 동기화 중...</div>
     </div>
   </div>
 
   <script>
-    // ⚠️ [중요] 본인의 구글 웹 앱 URL과 비밀번호를 설정하세요.
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwqOwd8lM2_b-IU_VRQuv58QR4yRtL4Ns5P235bQ3OHEoossrAtydz0_My7rfJz2xo8/exec"; 
+    // ⚠️ 여기에 구글 앱스 스크립트 배포 주소를 넣으세요! (/exec로 끝나야 함)
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxUxEXZEEJ93JKqvsafUUa0XGMRktJnX4ko8ogSXzgW9VyVz9D03XmtcMh7Lt_RLeXA/exec"; 
     const CORRECT_PW = "1234"; 
 
     window.onload = function() {
-      if (sessionStorage.getItem("admin_auth") === "true") {
-        showDashboard();
-      }
+      if (sessionStorage.getItem("admin_auth") === "true") showDashboard();
     };
 
     function checkPassword() {
@@ -124,22 +91,27 @@
       loadData();
     }
 
-    function logout() {
-      sessionStorage.clear();
-      location.reload();
-    }
+    function logout() { sessionStorage.clear(); location.reload(); }
 
-    // 시트 데이터 가져오기 (GET)
+    // 데이터 로드 (CORS 대응 보강)
     function loadData() {
-      fetch(`${GAS_URL}?mode=admin_data`)
-        .then(res => res.json())
-        .then(data => {
-          renderList(data);
-          updateStats(data);
-        })
-        .catch(err => {
-          document.getElementById('list').innerHTML = "데이터 로드 실패: " + err;
-        });
+      const listDiv = document.getElementById('list');
+      fetch(`${GAS_URL}?mode=admin_data`, {
+        method: 'GET',
+        redirect: 'follow' // 구글 리다이렉트 대응
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('네트워크 응답 없음');
+        return res.json();
+      })
+      .then(data => {
+        renderList(data);
+        updateStats(data);
+      })
+      .catch(err => {
+        listDiv.innerHTML = "🚨 데이터 로드 실패: " + err.message + "<br><small>구글 배포 권한(Anyone)을 확인하세요.</small>";
+        console.error(err);
+      });
     }
 
     function renderList(data) {
@@ -150,25 +122,23 @@
       }
       listDiv.innerHTML = "";
       data.forEach((row, index) => {
-        if (row[6] === "완료 ✨") return; // G열 상태 확인
-
+        if (row[6] === "완료 ✨") return;
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
           <div class="name-tag">${row[1]} ${row[2]} (${row[3]})</div>
           <div class="content-box"><strong>민원 내용:</strong><br>${row[5]}</div>
-          <textarea id="reply-${index}" placeholder="학생에게 보낼 답변을 입력하세요..."></textarea>
+          <textarea id="reply-${index}" placeholder="답변 내용을 입력하세요..."></textarea>
           <div style="text-align: right;">
             <button class="submit-btn" onclick="sendReply(${index}, ${index})">처리 완료</button>
           </div>
         `;
         listDiv.appendChild(card);
       });
-      if(listDiv.innerHTML === "") listDiv.innerHTML = "모든 민원이 해결되었습니다! 👏";
     }
 
     function updateStats(data) {
-      if(data === "EMPTY") return;
+      if(data === "EMPTY" || !Array.isArray(data)) return;
       const today = new Date().toLocaleDateString();
       const count = data.filter(row => {
         const rowDate = new Date(row[0]).toLocaleDateString();
@@ -177,11 +147,9 @@
       document.getElementById('todayCount').innerText = count;
     }
 
-    // 처리 완료 전송 (POST)
     function sendReply(uiIdx, dataIdx) {
       const msg = document.getElementById('reply-' + uiIdx).value;
-      if (!msg) return alert("답변 내용을 입력해 주세요.");
-
+      if (!msg) return alert("내용을 입력하세요.");
       const btn = event.target;
       btn.innerText = "처리 중...";
       btn.disabled = true;
@@ -190,17 +158,12 @@
         method: "POST",
         mode: "no-cors",
         headers: { "Content-Type": "text/plain" },
-        body: JSON.stringify({
-          action: "complete",
-          rowIdx: dataIdx,
-          message: msg
-        })
+        body: JSON.stringify({ action: "complete", rowIdx: dataIdx, message: msg })
       }).then(() => {
-        alert("처리가 완료되었습니다.");
+        alert("완료!");
         location.reload();
       }).catch(err => {
-        alert("오류 발생: " + err);
-        btn.innerText = "처리 완료";
+        alert("오류: " + err);
         btn.disabled = false;
       });
     }
