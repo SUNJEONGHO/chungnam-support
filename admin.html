@@ -67,7 +67,7 @@
 
   <script>
     // ⚠️ 여기에 구글 앱스 스크립트 배포 주소를 넣으세요! (/exec로 끝나야 함)
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxUxEXZEEJ93JKqvsafUUa0XGMRktJnX4ko8ogSXzgW9VyVz9D03XmtcMh7Lt_RLeXA/exec"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwgBC4iZ83aos9dFRjDWdpp7UPbj0L19yA4pfU0XFeLHM7N6XTHJL9likmbWwP36_44/exec"; 
     const CORRECT_PW = "1234"; 
 
     window.onload = function() {
@@ -94,26 +94,32 @@
     function logout() { sessionStorage.clear(); location.reload(); }
 
     // 데이터 로드 (CORS 대응 보강)
-    function loadData() {
-      const listDiv = document.getElementById('list');
-      fetch(`${GAS_URL}?mode=admin_data`, {
-        method: 'GET',
-        redirect: 'follow' // 구글 리다이렉트 대응
-      })
-      .then(res => {
-        if (!res.ok) throw new Error('네트워크 응답 없음');
-        return res.json();
-      })
-      .then(data => {
-        renderList(data);
-        updateStats(data);
-      })
-      .catch(err => {
-        listDiv.innerHTML = "🚨 데이터 로드 실패: " + err.message + "<br><small>구글 배포 권한(Anyone)을 확인하세요.</small>";
-        console.error(err);
-      });
-    }
+   function loadData() {
+  const listDiv = document.getElementById('list');
+  
+  // 구글 URL 뒤에 시간값을 붙여서 캐시(이전 기록)를 강제로 무시하게 합니다.
+  const finalUrl = `${GAS_URL}?mode=admin_data&t=${new Date().getTime()}`;
 
+  fetch(finalUrl, {
+    method: 'GET',
+    mode: 'cors', // CORS 모드 명시
+    redirect: 'follow', // 구글의 리다이렉트를 끝까지 추적
+    cache: 'no-cache'
+  })
+  .then(res => {
+    if (!res.ok) throw new Error('네트워크 응답이 없습니다.');
+    return res.json();
+  })
+  .then(data => {
+    renderList(data);
+    updateStats(data);
+  })
+  .catch(err => {
+    console.error("상세 에러:", err);
+    listDiv.innerHTML = `🚨 데이터 로드 실패<br><small>${err.message}</small><br>
+    <button class="submit-btn" style="margin-top:10px; padding:8px 16px; font-size:12px;" onclick="location.reload()">다시 시도</button>`;
+  });
+}
     function renderList(data) {
       const listDiv = document.getElementById('list');
       if (data === "EMPTY" || !data || data.length === 0) {
