@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --apple-blue: #0071e3;
+      --apple-bg: #ffffff;
+      --apple-text: #1d1d1f;
+      --apple-subtext: #86868b;
+      --apple-input-bg: #f5f5f7;
+    }
+    body { font-family: 'Inter', -apple-system, sans-serif; background-color: var(--apple-bg); margin: 0; color: var(--apple-text); -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; align-items: center; padding-top: 60px; }
+    .container { width: 100%; max-width: 500px; padding: 0 24px; box-sizing: border-box; text-align: center; }
+    h1 { font-size: 40px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 8px; }
+    p.subtitle { font-size: 19px; color: var(--apple-subtext); margin-bottom: 48px; }
+    .form-group { text-align: left; margin-bottom: 24px; }
+    label { font-size: 13px; font-weight: 600; color: var(--apple-subtext); margin-left: 4px; margin-bottom: 8px; display: block; }
+    .id-selector { display: flex; gap: 8px; }
+    .id-selector select { flex: 1; text-align: center; }
+    .email-group { display: flex; gap: 8px; align-items: center; }
+    .email-group input { flex: 1; }
+    .email-group select { flex: 1.5; font-size: 14px; }
+    input, select, textarea { width: 100%; background: var(--apple-input-bg); border: none; border-radius: 12px; padding: 16px; font-size: 16px; color: var(--apple-text); font-family: inherit; box-sizing: border-box; transition: all 0.2s ease; outline: none; }
+    input:focus, select:focus, textarea:focus { background: #ffffff; box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.1); }
+    .submit-btn { background: var(--apple-blue); color: white; border: none; width: 100%; padding: 18px; border-radius: 14px; font-size: 17px; font-weight: 600; cursor: pointer; margin-top: 10px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .submit-btn:hover { opacity: 0.9; transform: scale(0.99); }
+    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    #success-msg { display: none; padding: 60px 0; }
+    /* 로딩 스피너 애니메이션 */
+    .spinner { width: 20px; height: 20px; border: 3px solid rgba(255,255,255,.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s linear infinite; display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div id="request-form">
+      <h1>정보부 지원</h1>
+      <p class="subtitle">충남고 정보부 서비스</p>
+
+      <div class="form-group">
+        <label>학번</label>
+        <div class="id-selector">
+          <select id="grade"></select>
+          <select id="classNum"></select>
+          <select id="studentNum"></select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>이름</label>
+        <input type="text" id="name" placeholder="성명을 입력하세요">
+      </div>
+
+      <div class="form-group">
+        <label>답변 받을 이메일</label>
+        <div class="email-group">
+          <input type="text" id="emailId" placeholder="아이디">
+          <span>@</span>
+          <select id="emailDomain">
+            <option value="chungnamhs.djsch.kr">chungnamhs.djsch.kr</option>
+            <option value="gmail.com">gmail.com</option>
+            <option value="naver.com">naver.com</option>
+            <option value="kakao.com">kakao.com</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>문의 유형</label>
+        <select id="type">
+          <option value="비밀번호 초기화">구글 비밀번호 초기화</option>
+          <option value="기기 문의">태블릿 및 기기 문의</option>
+          <option value="기타">기타 사항</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>상세 내용</label>
+        <textarea id="detail" rows="4" placeholder="무엇을 도와드릴까요?"></textarea>
+      </div>
+
+      <button class="submit-btn" onclick="submitData()">
+        <div class="spinner" id="btn-spinner"></div>
+        <span id="btn-text">접수하기</span>
+      </button>
+    </div>
+
+    <div id="success-msg">
+      <h2 style="font-size: 32px; margin-bottom: 10px;">접수 완료</h2>
+      <p style="color: var(--apple-subtext); margin-bottom: 30px;">정보부에서 확인 후 이메일로 답변해 드릴게요.</p>
+      <button class="submit-btn" style="width: auto; padding: 12px 40px;" onclick="location.reload()">처음으로</button>
+    </div>
+  </div>
+
+  <script>
+    // ⚠️ 여기에 본인의 구글 웹 앱 배포 URL을 넣으세요!
+    const GAS_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AWDtjMWs93bIDq9gEWm0U6vGWGmqJBYX1Lb2pBhaHs6AQpaqIQnNmaYTBoqtLbIAi9AeDAiHplZhfOdpurK7DrRtUXvezsvSj1KGzxIfqiq8EhTvj3JzyK5nsrmBYbXnHZPITO5aVTJsOmZLz7lLrTih4iN-bd1k4YwCG_IY9n36h_gmDKmNVyD93XqU6zXRksiIHtyjO7R-CvzPgVaG4_ff2PKxmO3ah1ZQYoo5IR18UvWuY1V21sVdzCEafJn6IXI8cclSsD5w-oUEbmVZkrhu0s_l1htUfw&lib=Mr-03e5D5Xba_FYSkaSjMRgAT1QMrYdsh"; 
+
+    window.onload = function() {
+      const g = document.getElementById('grade');
+      const c = document.getElementById('classNum');
+      const s = document.getElementById('studentNum');
+      for(let i=1; i<=3; i++) g.add(new Option(i + "학년", i));
+      for(let i=1; i<=12; i++) c.add(new Option(i + "반", i < 10 ? "0"+i : i));
+      for(let i=1; i<=30; i++) s.add(new Option(i + "번", i < 10 ? "0"+i : i));
+    };
+
+    function submitData() {
+      const grade = document.getElementById('grade').value;
+      const classNum = document.getElementById('classNum').value;
+      const studentNum = document.getElementById('studentNum').value;
+      const emailId = document.getElementById('emailId').value;
+      const name = document.getElementById('name').value;
+
+      if (!grade || !classNum || !studentNum || !emailId || !name) {
+        alert("정보를 모두 입력해 주세요.");
+        return;
+      }
+
+      const btn = document.querySelector('.submit-btn');
+      const spinner = document.getElementById('btn-spinner');
+      const btnText = document.getElementById('btn-text');
+
+      // 로딩 상태 표시
+      btn.disabled = true;
+      spinner.style.display = 'block';
+      btnText.innerText = "접수 중...";
+
+      const data = {
+        studentId: grade + classNum + studentNum,
+        name: name,
+        email: emailId + "@" + document.getElementById('emailDomain').value,
+        type: document.getElementById('type').value,
+        detail: document.getElementById('detail').value
+      };
+
+      // Vercel에서 Google로 데이터 전송
+      fetch(GAS_URL, {
+        method: "POST",
+        mode: "no-cors", // 중요: GAS API 통신 설정
+        body: JSON.stringify(data)
+      })
+      .then(() => {
+        // 전송 성공 시 화면 전환
+        document.getElementById('request-form').style.display = 'none';
+        document.getElementById('success-msg').style.display = 'block';
+      })
+      .catch(err => {
+        alert("오류가 발생했습니다: " + err);
+        btn.disabled = false;
+        spinner.style.display = 'none';
+        btnText.innerText = "접수하기";
+      });
+    }
+  </script>
+</body>
+</html>
