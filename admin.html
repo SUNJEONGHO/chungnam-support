@@ -5,48 +5,83 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body { font-family:sans-serif; background:#f5f5f7; display:flex; margin:0; }
-    #side { width:280px; background:#fff; height:100vh; padding:25px; border-right:1px solid #ddd; position:fixed; }
-    #main { margin-left:330px; padding:40px; flex:1; }
+    #side { width:300px; background:#fff; height:100vh; padding:25px; border-right:1px solid #ddd; position:fixed; overflow-y:auto; }
+    #main { margin-left:350px; padding:40px; flex:1; }
     .card { background:#fff; border-radius:15px; padding:20px; margin-bottom:20px; box-shadow:0 2px 10px rgba(0,0,0,0.05); }
-    .stat { background:#0b3190; color:#fff; padding:15px; border-radius:12px; text-align:center; margin-bottom:10px; }
+    .stat-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+    .stat { background:#0b3190; color:#fff; padding:15px; border-radius:12px; text-align:center; }
     .btn { background:#0b3190; color:#fff; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; }
     textarea { width:100%; height:60px; margin:10px 0; border-radius:8px; border:1px solid #ddd; padding:10px; box-sizing:border-box; }
+    h3 { font-size: 14px; color: #86868b; margin-top: 25px; }
   </style>
 </head>
 <body>
   <div id="side">
-    <img id="admin-logo" style="width:50px;margin-bottom:20px;">
-    <div class="stat"><small>전체 접수</small><h2 id="total">0</h2></div>
-    <div class="stat" style="background:#f5f5f7; color:#1d1d1f; border:1px solid #ddd;"><small>처리 완료</small><h2 id="done">0</h2></div>
-    <h3>요일 통계</h3><canvas id="dayChart"></canvas>
+    <h2 style="color:#0b3190;">Admin Dashboard</h2>
+    <div class="stat-box">
+      <div class="stat"><small>전체</small><br><span id="total" style="font-size:20px; font-weight:bold;">0</span></div>
+      <div class="stat" style="background:#34c759;"><small>완료</small><br><span id="done" style="font-size:20px; font-weight:bold;">0</span></div>
+    </div>
+    
+    <h3>질문 유형별 비율</h3>
+    <canvas id="typeChart"></canvas>
+    
+    <h3>요일별 접수 현황</h3>
+    <canvas id="dayChart"></canvas>
   </div>
   <div id="main">
-    <h1>대기 중인 민원</h1><div id="list">불러오는 중...</div>
+    <h1>처리 대기 목록</h1>
+    <div id="list">데이터를 불러오는 중...</div>
   </div>
+
   <script>
     const API = "https://script.google.com/macros/s/AKfycbzT2JkFWLlbxZg_k3uiKkywzkfP_h0Q5Dc2YEhZ4FJeBiTGL058NzM6dDFUmXZWyS_9/exec";
-    const B64 = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbDpzcGFjZT0icHJlc2VydmUiIHdpZHRoPSIzNzQuMTU1MjciIGhlaWdodD0iNDEzLjEzNzc5IiB2aWV3Qm94PSIwIDAgMzc0LjE1NTI3IDQxMy4xMzc3OSI+PGRlZnM+PGNsaXBQYXRoIGlkPSJhIiBjbGlwUGF0aFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTTAgMTg0Mi41MmgxODcwLjg3VjBIMFoiLz48L2NsaXBQYXRoPjwvZGVmcz48ZyBjbGlwLXBhdGg9InVybCgjYSkiIHN0eWxlPSJzdHJva2Utd2lkdGg6Mi44OTU0MiIgdHJhbnNmb3JtPSJtYXRyaXgoLjQ2MDUgMCAwIC0uNDYwNSAtMjQ0LjMxOCA2MzIuMDU1KSI+PGcgc3R5bGU9InN0cm9rZS13aWR0aDoyLjg5NTQyIj48cGF0aCBkPSJNMCAwYy00MC45MSAwLTc0LjA1NyAzMy4xOTUtNzQuMDU3IDc0LjA4MyAwIDQwLjg5OSAzMy4xNDcgNzQuMDYyIDc0LjA1NyA3NC4wNjIgNDAuODg5IDAgNzQuMDY0LTMzLjE2MyA3NC4wNjQtNzQuMDYyQzc0LjA2NCAzMS45NjYgNDIuMTE3IDAgMCAwbTQwNi4wNTggMzQyLjAwMmMtLjAzNyAyNC40MTQtMTkuOTIzIDQwLjY1Mi0zOS44NjEgNDAuNjMxLTU5LjA1My0uMDYtMTYzLjQzNi4wNTMtMjQ1LjI4Ny0uMDczLTQ2Ljk1Ny0uMDYtNzQuMDcxLTM3Ljk2My03NC4wNzEtNzQuMDYxIDAtMjcuMjI2LS4wNjgtMzcuNTMyLS4wNjgtMzcuNTMyhC05My44NDlzLjA0NiAyMS45OTEuMDQ2IDM3LjUzMmMwIDM2LjA4OC0yOC4zOTYgNzMuODU4LTczLjk3OSA3NC4wMDEtODIuMDg3LjI1Ny0xOTcuMDk1LjA5Mi0yNDUuOTI0LS4wNTEtMjIuMTYtLjA2My0zOS40NjctMTguNzUyLTM5LjQ2Ny00MC40NDcgMC04OC43MTguMDcxLTMwOS4zMTkgMC04OC43MTguMDcxLTMwOS4zMTkgMTEyLjg3IDI4LjQ0MyAyMjEuNzIxLTYuMzQ0IDIzNi43NjktMzYuNTY1Qy0xMzQuODA0LTczLjY0OC03Mi44OTgtMTEyLjU3MiAwLTExMi41NDNjNzYuNTMuMDMgMTM4LjIxNCA0NC4wMjIgMTY5LjU0NyAxMDguNjYxIDEwLjcyNCAyMi4wOTMgMTAyLjk3NyA2Ny43ODUgMjM2LjQ4MSAzNi41NjUgMCAwIC4xNDMgMjM5LjUxNS4wMyAzMDkuMzE5IiBzdHlsZT0iZmlsbDojMGIzMTkwO2ZpbGwtb3BhY2l0eToxO2ZpbGwtcnVsZTpub256ZXJvO3N0cm9rZTpub25lO3N0cm9rZS13aWR0aDoyLjg5NTQyIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg5MzYuOTU1IDU4Ny45MzYpIi8+PC9nPjxnIHN0eWxlPSJzdHJva2Utd2lkdGg6Mi44OTU0MiI+PHBhdGggZD0iTTAgMGMtMi4zMjQtNC4xODQtMjIuMDQ4LTM3LjM5LTIyLjA0OC0zNy4zOWw2OS4xMDctNDkuMDIzczI0Ljg3NyAzMC4zNzQgMzYuODIyIDQ0LjY5N2MzNS43MTggNDIuODI5IDQ0LjQ5NyA0My4xNjggODAuMjIyIDBsMzYuNzE2LTQ0LjkxIDY5LjExMiA0OS4yMzZTMjUwLjMyNS00LjA1IDI0OC4zNTUtLjUwOWMtMjQuODI5IDQ0LjM1NC0xNC4wNTkgNTEuNjYtLjUwOSA1My44MDIgNDMuMjc3IDYuODI1IDQ2LjUyMiA3LjE0IDQ2LjUyMiA3LjE0djgyLjU1M3MtNjUuMjM1IDIuNTgyLTc3LjE4IDQuMDk3Yy0yNC41MjIgMy4wOTktNDIuMTQxIDE2LjQzMS00NC45ODkgNDAuNzUtMS44ODggMTYuMTQ5LTQuMTEgNDYuMzg4LTQuMTEgNDYuMzg4SDgwLjU3NnMtMi44NC0zOC4xNDMtNC4yNDgtNDYuMzg4Yy00LjEzOC0yNC4zMTktMjEuMTM4LTM4LjIwNi00NS44NzktNDAuNzUtMTkuNTk4LTIuMDM0LTc2LjI5MS00LjA5Ny03Ni4yOTEtNC4wOTdWNjAuNDMzczMuMTg1LS41MjMgNDcuMDA4LTcuMTUzQzE0LjQ4NiA1MS4yNiAyNC4zNjcgNDMuODQ1IDAgMCIgc3R5bGU9ImZpbGw6IzBiMzE5MDtmaWxsLW9wYWNpdHk6MTtmaWxsLXJ1bGU6bm9uemVybztzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6Mi44OTU0MiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoODEyLjc0OCAxMTM4LjMyOCkiLz48L2c+PC9nPjwvc3ZnPg==";
-    document.getElementById('admin-logo').src = B64;
 
     async function load() {
       const res = await fetch(API + "?mode=admin_data");
       const data = await res.json();
       document.getElementById('total').innerText = data.stats.total;
       document.getElementById('done').innerText = data.stats.done;
-      new Chart(document.getElementById('dayChart'), { type:'bar', data:{ labels:Object.keys(data.dayStats), datasets:[{data:Object.values(data.dayStats), backgroundColor:'#0b3190'}] } });
+
+      // 요일별 차트
+      new Chart(document.getElementById('dayChart'), {
+        type:'bar',
+        data:{ labels:Object.keys(data.dayStats), datasets:[{ label:'접수건수', data:Object.values(data.dayStats), backgroundColor:'#0b3190'}] }
+      });
+
+      // ✅ 질문별 통계 차트 (도넛 모양)
+      new Chart(document.getElementById('typeChart'), {
+        type:'doughnut',
+        data:{
+          labels: Object.keys(data.typeStats),
+          datasets: [{ data: Object.values(data.typeStats), backgroundColor: ['#ff3b30', '#ffcc00', '#007aff'] }]
+        },
+        options: { plugins: { legend: { position: 'bottom' } } }
+      });
+
       const listDiv = document.getElementById('list'); listDiv.innerHTML = "";
       data.list.forEach((row, idx) => {
         if(row[6] === "완료 ✨") return;
         const card = document.createElement('div'); card.className = 'card';
-        card.innerHTML = `<b>${row[1]} ${row[2]}</b><p>${row[5]}</p><textarea id="m${idx}"></textarea><button class="btn" onclick="done(${idx},'${row[3]}','${row[2]}', this)">완료</button>`;
+        card.innerHTML = `
+          <div style="display:flex; justify-content:space-between;">
+            <strong>${row[1]} ${row[2]}</strong>
+            <span style="color:#0b3190; font-size:12px;">${row[4]}</span>
+          </div>
+          <p style="margin:10px 0; color:#333;">${row[5]}</p>
+          <textarea id="m${idx}" placeholder="학생에게 보낼 답변을 입력하세요..."></textarea>
+          <button class="btn" onclick="done(${idx},'${row[3]}','${row[2]}', this)">완료 및 이메일 발송</button>
+        `;
         listDiv.appendChild(card);
       });
     }
+
     async function done(idx, email, name, btn) {
       const msg = document.getElementById('m'+idx).value;
+      if(!msg) { alert("답변 내용을 입력해주세요."); return; }
       btn.disabled = true; btn.innerText="처리 중...";
       await fetch(API, { method:"POST", body:JSON.stringify({action:"complete", rowIdx:idx, message:msg, email:email, name:name}) });
-      alert("완료!"); location.reload();
+      alert("처리가 완료되었습니다!"); location.reload();
     }
     load();
   </script>
