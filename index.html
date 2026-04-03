@@ -3,146 +3,75 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>충남고 정보부 민원접수</title>
+  <title>충남고 민원접수</title>
   <style>
-    :root { --main-blue: #0b3190; --bg-gray: #f5f5f7; }
-    body { font-family:-apple-system, sans-serif; background: var(--bg-gray); display:flex; justify-content:center; padding:40px 20px; margin:0; }
-    .card { background:#fff; padding:30px; border-radius:24px; width:100%; max-width:480px; box-shadow:0 8px 30px rgba(0,0,0,0.08); box-sizing:border-box; }
-    
-    .logo-container { text-align:center; margin-bottom:20px; }
-    h2 { margin:10px 0; font-size:22px; color:#1d1d1f; letter-spacing: -0.5px; }
-    
-    label { font-size:13px; font-weight:600; color:#86868b; margin-left:5px; display:block; margin-top:18px; margin-bottom:5px; }
-    input, select, textarea { width:100%; padding:14px; border-radius:12px; border:1px solid #d2d2d7; box-sizing:border-box; background:#f9f9f9; font-size:15px; outline:none; transition:0.2s; }
-    input:focus, textarea:focus, select:focus { border-color:var(--main-blue); background:#fff; box-shadow: 0 0 0 4px rgba(11, 49, 144, 0.1); }
-
-    /* 학번 선택 */
-    .sid-row { display: flex; gap: 8px; }
-    .sid-row select { flex: 1; text-align: center; }
-
-    /* ✅ 이메일 아이디 옆에 도메인 버튼 배치 */
-    .email-area { display: flex; flex-direction: column; gap: 8px; }
-    .email-top { display: flex; gap: 8px; align-items: center; }
-    .email-top input { flex: 1; }
-    
-    .domain-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
-    .domain-btn { 
-      background: #fff; border: 1px solid #d2d2d7; padding: 10px; border-radius: 10px; 
-      font-size: 11px; cursor: pointer; transition: 0.2s; color: #1d1d1f; word-break: break-all;
-    }
-    .domain-btn.active { background: var(--main-blue); color: #fff; border-color: var(--main-blue); font-weight: 600; }
-
-    .btn-submit { width:100%; padding:18px; border-radius:16px; border:none; background:var(--main-blue); color:#fff; font-weight:600; font-size:17px; cursor:pointer; transition: 0.2s; margin-top:30px; }
-    .btn-submit:disabled { background:#d2d2d7; cursor:not-allowed; }
-
-    /* ✅ 로고가 안 잘리도록 보정한 스타일 */
-    .cnhs-logo { width: 70px; height: 80px; overflow: visible; }
+    :root { --blue: #0b3190; --gray: #f5f5f7; }
+    body { font-family:-apple-system, sans-serif; background: var(--gray); display:flex; justify-content:center; padding:40px 20px; margin:0; }
+    .card { background:#fff; padding:30px; border-radius:24px; width:100%; max-width:440px; box-shadow:0 8px 30px rgba(0,0,0,0.08); box-sizing:border-box; }
+    .logo { text-align:center; margin-bottom:20px; }
+    label { font-size:13px; font-weight:600; color:#86868b; display:block; margin-top:15px; margin-bottom:5px; }
+    input, select, textarea { width:100%; padding:14px; border-radius:12px; border:1px solid #d2d2d7; box-sizing:border-box; background:#f9f9f9; font-size:15px; outline:none; }
+    .row { display: flex; gap: 8px; }
+    .row > * { flex: 1; }
+    /* 이메일 버튼 스타일 */
+    .domain-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
+    .d-btn { background:#fff; border:1px solid #d2d2d7; padding:10px; border-radius:10px; font-size:11px; cursor:pointer; }
+    .d-btn.active { background: var(--blue); color:#fff; border-color: var(--blue); }
+    .submit { width:100%; padding:18px; border-radius:16px; border:none; background:var(--blue); color:#fff; font-weight:600; font-size:17px; cursor:pointer; margin-top:25px; }
+    .submit:disabled { background:#ccc; }
   </style>
 </head>
 <body>
-  <div class="card" id="form-view">
-    <div class="logo-container">
-      <svg class="cnhs-logo" viewBox="250 550 375 415" xmlns="http://www.w3.org/2000/svg">
-        <g transform="matrix(0.4605 0 0 -0.4605 -244.318 632.055)">
-          <path d="M936.955 587.936c-40.91 0-74.057 33.195-74.057 74.083 0 40.899 33.147 74.062 74.057 74.062 40.889 0 74.064-33.163 74.064-74.062 0-40.899-31.947-74.083-74.064-74.083m406.058 342.002c-.037 24.414-19.923 40.652-39.861 40.631-59.053-.06-163.436.053-245.287-.073-46.957-.06-74.071-37.963-74.071-74.061 0-27.226-.068-37.532-.068-37.532h-93.849s.046 21.991.046 37.532c0 36.088-28.396 73.858-73.979 74.001-82.087.257-197.095.092-245.924-.051-22.16-.063-39.467-18.752-39.467-40.447 0-88.718.071-309.319.071-309.319 112.87 28.443 221.721-6.344 236.769-36.565-51.573-37.083 10.333-76.007 83.231-75.978 76.53.03 138.214 44.022 169.547 108.661 10.724 22.093 102.977 67.785 236.481 36.565 0 0 .143 239.515.03 309.319" fill="#0b3190"/>
-          <path d="M812.748 1138.328s-2.324-4.184-22.048-37.39l69.107-49.023s24.877 30.374 36.822 44.697c35.718 42.829 44.497 43.168 80.222 0l36.716-44.91 69.112 49.236s-24.3 43.123-26.27 46.664c-24.829 44.354-14.059 51.66-.509 53.802 43.277 6.825 46.522 7.14 46.522 7.14v82.553s-65.235 2.582-77.18 4.097c-24.522 3.099-42.141 16.431-44.989 40.75-1.888 16.149-4.11 46.388-4.11 46.388H893.324s-2.84-38.143-4.248-46.388c-4.138-24.319-21.138-38.206-45.879-40.75-19.598-2.034-76.291-4.097-76.291-4.097v-82.553c33.185-.523 47.008-7.153 50.841-13.822 14.486-25.045 24.367-32.46 0-76.305" fill="#0b3190"/>
-        </g>
-      </svg>
+  <div class="card">
+    <div class="logo">
+      <img id="main-logo" style="width:70px;">
       <h2>민원 접수</h2>
     </div>
-    
     <label>학번 선택</label>
-    <div class="sid-row">
-      <select id="grade"><option value="">학년</option><option>1</option><option>2</option><option>3</option></select>
-      <select id="class"><option value="">반</option></select>
-      <select id="number"><option value="">번호</option></select>
+    <div class="row">
+      <select id="g"><option value="">학년</option><option>1</option><option>2</option><option>3</option></select>
+      <select id="c"><option value="">반</option></select>
+      <select id="n"><option value="">번호</option></select>
     </div>
-    
     <label>이름</label>
-    <input type="text" id="name" placeholder="성명을 입력하세요">
-    
-    <label>이메일 주소</label>
-    <div class="email-area">
-      <div class="email-top">
-        <input type="text" id="email-id" placeholder="아이디 입력">
-      </div>
-      <div class="domain-grid">
-        <button type="button" class="domain-btn" onclick="toggleDomain('@chungnamhs.djsch.kr', this)">@chungnamhs.djsch.kr</button>
-        <button type="button" class="domain-btn" onclick="toggleDomain('@gmail.com', this)">@gmail.com</button>
-        <button type="button" class="domain-btn" onclick="toggleDomain('@naver.com', this)">@naver.com</button>
-        <button type="button" class="domain-btn" onclick="toggleDomain('@kakao.com', this)">@kakao.com</button>
-      </div>
+    <input type="text" id="name" placeholder="성명">
+    <label>이메일 아이디</label>
+    <input type="text" id="eid" placeholder="아이디 입력">
+    <div class="domain-btns">
+      <button class="d-btn" onclick="toggleD('@chungnamhs.djsch.kr', this)">@충남고</button>
+      <button class="d-btn" onclick="toggleD('@gmail.com', this)">@gmail.com</button>
+      <button class="d-btn" onclick="toggleD('@naver.com', this)">@naver.com</button>
+      <button class="d-btn" onclick="toggleD('@kakao.com', this)">@kakao.com</button>
     </div>
-    
     <label>문의 유형</label>
-    <select id="type">
-      <option>비밀번호 초기화</option>
-      <option>기기 문의</option>
-      <option>기타</option>
-    </select>
-    
+    <select id="type"><option>비밀번호 초기화</option><option>기기 문의</option><option>기타</option></select>
     <label>상세 내용</label>
-    <textarea id="detail" placeholder="내용을 입력해 주세요."></textarea>
-    
-    <button class="btn-submit" id="submit-btn" onclick="submit()">접수하기</button>
+    <textarea id="detail" rows="3" placeholder="내용 입력"></textarea>
+    <button class="submit" id="s-btn" onclick="send()">접수하기</button>
   </div>
-
   <script>
-    const API = "https://script.google.com/macros/s/AKfycbwfqSnyPRtNK3nZ7TWfv55mbydc40q8Q1d67XMFYUx_fOc4AGMJM7l7rBipI9PcEfN_/exec"; // ⚠️ 본인의 웹앱 URL 입력!
-    let selectedDomain = "";
+    const API = "https://script.google.com/macros/s/AKfycbzT2JkFWLlbxZg_k3uiKkywzkfP_h0Q5Dc2YEhZ4FJeBiTGL058NzM6dDFUmXZWyS_9/exec";
+    const B64 = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbDpzcGFjZT0icHJlc2VydmUiIHdpZHRoPSIzNzQuMTU1MjciIGhlaWdodD0iNDEzLjEzNzc5IiB2aWV3Qm94PSIwIDAgMzc0LjE1NTI3IDQxMy4xMzc3OSI+PGRlZnM+PGNsaXBQYXRoIGlkPSJhIiBjbGlwUGF0aFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTTAgMTg0Mi41MmgxODcwLjg3VjBIMFoiLz48L2NsaXBQYXRoPjwvZGVmcz48ZyBjbGlwLXBhdGg9InVybCgjYSkiIHN0eWxlPSJzdHJva2Utd2lkdGg6Mi44OTU0MiIgdHJhbnNmb3JtPSJtYXRyaXgoLjQ2MDUgMCAwIC0uNDYwNSAtMjQ0LjMxOCA2MzIuMDU1KSI+PGcgc3R5bGU9InN0cm9rZS13aWR0aDoyLjg5NTQyIj48cGF0aCBkPSJNMCAwYy00MC45MSAwLTc0LjA1NyAzMy4xOTUtNzQuMDU3IDc0LjA4MyAwIDQwLjg5OSAzMy4xNDcgNzQuMDYyIDc0LjA1NyA3NC4wNjIgNDAuODg5IDAgNzQuMDY0LTMzLjE2MyA3NC4wNjQtNzQuMDYyQzc0LjA2NCAzMS45NjYgNDIuMTE3IDAgMCAwbTQwNi4wNTggMzQyLjAwMmMtLjAzNyAyNC40MTQtMTkuOTIzIDQwLjY1Mi0zOS44NjEgNDAuNjMxLTU5LjA1My0uMDYtMTYzLjQzNi4wNTMtMjQ1LjI4Ny0uMDczLTQ2Ljk1Ny0uMDYtNzQuMDcxLTM3Ljk2My03NC4wNzEtNzQuMDYxIDAtMjcuMjI2LS4wNjgtMzcuNTMyLS4wNjgtMzcuNTMyaC05My44NDlzLjA0NiAyMS45OTEuMDQ2IDM3LjUzMmMwIDM2LjA4OC0yOC4zOTYgNzMuODU4LTczLjk3OSA3NC4wMDEtODIuMDg3LjI1Ny0xOTcuMDk1LjA5Mi0yNDUuOTI0LS4wNTEtMjIuMTYtLjA2My0zOS40NjctMTguNzUyLTM5LjQ2Ny00MC40NDcgMC04OC43MTguMDcxLTMwOS4zMTkgMC04OC43MTguMDcxLTMwOS4zMTkgMTEyLjg3IDI4LjQ0MyAyMjEuNzIxLTYuMzQ0IDIzNi43NjktMzYuNTY1Qy0xMzQuODA0LTczLjY0OC03Mi44OTgtMTEyLjU3MiAwLTExMi41NDNjNzYuNTMuMDMgMTM8L2c+PC9zdmc+";
+    document.getElementById('main-logo').src = B64;
+    
+    // 학번 채우기
+    const cs = document.getElementById('c'), ns = document.getElementById('n');
+    for(let i=1;i<=12;i++) cs.add(new Option(i+'반', i));
+    for(let i=1;i<=35;i++) ns.add(new Option(i+'번', String(i).padStart(2,'0')));
 
-    // 학번 옵션 생성
-    const cS = document.getElementById('class');
-    const nS = document.getElementById('number');
-    for(let i=1; i<=12; i++) cS.innerHTML += `<option>${i}</option>`;
-    for(let i=1; i<=35; i++) nS.innerHTML += `<option>${String(i).padStart(2,'0')}</option>`;
-
-    // ✅ 도메인 토글 기능 (두 번 누르면 취소)
-    function toggleDomain(domain, btn) {
-      if (selectedDomain === domain) {
-        selectedDomain = "";
-        btn.classList.remove('active');
-      } else {
-        selectedDomain = domain;
-        document.querySelectorAll('.domain-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-      }
+    let selD = "";
+    function toggleD(d, b) {
+      if(selD === d) { selD = ""; b.classList.remove('active'); }
+      else { selD = d; document.querySelectorAll('.d-btn').forEach(btn=>btn.classList.remove('active')); b.classList.add('active'); }
     }
 
-    async function submit() {
-      const btn = document.getElementById('submit-btn');
-      const g = document.getElementById('grade').value;
-      const c = document.getElementById('class').value;
-      const n = document.getElementById('number').value;
-      const name = document.getElementById('name').value;
-      const eid = document.getElementById('email-id').value;
-      const detail = document.getElementById('detail').value;
-
-      if(!g || !c || !n || !name || !eid || !selectedDomain || !detail) {
-        alert("모든 항목을 입력하고 도메인 버튼을 눌러주세요."); return;
-      }
-
-      btn.disabled = true;
-      btn.innerText = "접수 중...";
-
-      const fullSid = `${g}${String(c).padStart(2,'0')}${n}`;
-      const data = {
-        studentId: fullSid,
-        name: name,
-        email: eid + selectedDomain,
-        type: document.getElementById('type').value,
-        detail: detail
-      };
-
-      try {
-        await fetch(API, { method:"POST", mode:"no-cors", body:JSON.stringify(data) });
-        alert("성공적으로 접수되었습니다!");
-        location.reload();
-      } catch(e) {
-        alert("오류 발생!");
-        btn.disabled = false;
-        btn.innerText = "접수하기";
-      }
+    async function send() {
+      const g=document.getElementById('g').value, c=document.getElementById('c').value, n=document.getElementById('n').value;
+      const name=document.getElementById('name').value, eid=document.getElementById('eid').value, det=document.getElementById('detail').value;
+      if(!g||!name||!eid||!selD||!det) { alert("모든 항목을 입력하세요."); return; }
+      const btn = document.getElementById('s-btn'); btn.disabled=true; btn.innerText="접수 중...";
+      await fetch(API, {method:"POST", mode:"no-cors", body:JSON.stringify({studentId:g+String(c).padStart(2,'0')+n, name:name, email:eid+selD, type:document.getElementById('type').value, detail:det})});
+      alert("접수 완료!"); location.reload();
     }
   </script>
 </body>
