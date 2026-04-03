@@ -6,48 +6,82 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body { font-family:sans-serif; background:#f5f5f7; display:flex; margin:0; }
-    #side { width:300px; background:#fff; height:100vh; padding:30px; border-right:1px solid #ddd; position:fixed; }
+    #side { width:300px; background:#fff; height:100vh; padding:30px; border-right:1px solid #ddd; position:fixed; overflow-y:auto; }
     #main { margin-left:360px; padding:40px; flex:1; }
     .card { background:#fff; border-radius:15px; padding:20px; margin-bottom:20px; box-shadow:0 2px 10px rgba(0,0,0,0.05); }
+    .stats-box { display: flex; gap: 15px; margin-bottom: 20px; }
+    .stat-card { flex: 1; background: #0b3190; color: #fff; padding: 15px; border-radius: 12px; text-align: center; }
     .btn { background:#0b3190; color:#fff; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; }
-    textarea { width:100%; height:60px; margin:10px 0; border-radius:8px; border:1px solid #ddd; }
+    textarea { width:100%; height:60px; margin:10px 0; border-radius:8px; border:1px solid #ddd; padding:10px; box-sizing:border-box; }
   </style>
 </head>
 <body>
   <div id="side">
     <svg width="50" viewBox="250 550 375 415"><path d="M936.955 587.936c-40.91 0-74.057 33.195-74.057 74.083 0 40.899 33.147 74.062 74.057 74.062 40.889 0 74.064-33.163 74.064-74.062 0-40.899-31.947-74.083-74.064-74.083m406.058 342.002c-.037 24.414-19.923 40.652-39.861 40.631-59.053-.06-163.436.053-245.287-.073-46.957-.06-74.071-37.963-74.071-74.061 0-27.226-.068-37.532-.068-37.532h-93.849s.046 21.991.046 37.532c0 36.088-28.396 73.858-73.979 74.001-82.087.257-197.095.092-245.924-.051-22.16-.063-39.467-18.752-39.467-40.447 0-88.718.071-309.319.071-309.319 112.87 28.443 221.721-6.344 236.769-36.565-51.573-37.083 10.333-76.007 83.231-75.978 76.53.03 138.214 44.022 169.547 108.661 10.724 22.093 102.977 67.785 236.481 36.565 0 0 .143 239.515.03 309.319" fill="#0b3190" transform="matrix(0.4605 0 0 -0.4605 -244.318 632.055)"/></svg>
+    
+    <div style="margin-top:20px;">
+      <div class="stat-card" style="background:#f5f5f7; color:#1d1d1f; border:1px solid #ddd; margin-bottom:10px;">
+        <small>전체 접수</small><h2 id="stat-total">0</h2>
+      </div>
+      <div class="stat-card" style="margin-bottom:10px;">
+        <small>처리 완료</small><h2 id="stat-done">0</h2>
+      </div>
+    </div>
+
     <h3>요일별 통계</h3><canvas id="dayChart"></canvas>
     <h3>유형별 통계</h3><canvas id="typeChart"></canvas>
   </div>
+
   <div id="main">
     <h1>대기 중인 민원</h1>
     <div id="list">불러오는 중...</div>
   </div>
+
   <script>
-    const API = "https://script.google.com/macros/s/AKfycbzwubeXlhydM3dI2ooayaHv8K4TGGl2-M9FYH-_YHOTzcj2ynUGzQ-bvNIqcVW3uaUb/exec";
+    const API = "https://script.google.com/macros/s/AKfycby_ZD4x4EIGEmEQA0pQVqMCpdIEjaiFlGDZXsmykVRfbYrGsgbYVT3qf1J7KMEsF6oh/exec";
+
     async function load() {
-      const res = await fetch(API + "?mode=admin_data");
-      const data = await res.json();
-      renderCharts(data.dayStats, data.typeStats);
-      renderList(data.list);
+      try {
+        const res = await fetch(API + "?mode=admin_data");
+        const data = await res.json();
+        
+        // 통계 숫자 업데이트
+        document.getElementById('stat-total').innerText = data.stats.total;
+        document.getElementById('stat-done').innerText = data.stats.done;
+
+        renderCharts(data.dayStats, data.typeStats);
+        renderList(data.list);
+      } catch(e) { document.getElementById('list').innerText = "데이터를 불러올 수 없습니다."; }
     }
+
     function renderCharts(d, t) {
-      new Chart(document.getElementById('dayChart'), { type:'bar', data:{ labels:Object.keys(d), datasets:[{data:Object.values(d), backgroundColor:'#0b3190'}] } });
+      new Chart(document.getElementById('dayChart'), { type:'bar', data:{ labels:Object.keys(d), datasets:[{label:'건수', data:Object.values(d), backgroundColor:'#0b3190'}] }, options:{plugins:{legend:{display:false}}} });
       new Chart(document.getElementById('typeChart'), { type:'pie', data:{ labels:Object.keys(t), datasets:[{data:Object.values(t), backgroundColor:['#0b3190','#34c759','#ff9f0a']}] } });
     }
+
     function renderList(data) {
       const div = document.getElementById('list'); div.innerHTML = "";
+      let hasPending = false;
       data.forEach((row, idx) => {
         if(row[6] === "완료 ✨") return;
+        hasPending = true;
         const card = document.createElement('div'); card.className = 'card';
-        card.innerHTML = `<b>${row[1]} ${row[2]}</b><p>${row[5]}</p><textarea id="m${idx}"></textarea><button class="btn" onclick="done(${idx},'${row[3]}','${row[2]}')">완료</button>`;
+        card.innerHTML = `<b>${row[1]} ${row[2]}</b> <small style="color:#86868b">${row[4]}</small><p>${row[5]}</p><textarea id="m${idx}" placeholder="학생에게 보낼 답변을 적으세요..."></textarea><button class="btn" onclick="done(${idx},'${row[3]}','${row[2]}', this)">처리 완료 및 메일 발송</button>`;
         div.appendChild(card);
       });
+      if(!hasPending) div.innerHTML = "<p>대기 중인 민원이 없습니다. ✨</p>";
     }
-    async function done(idx, email, name) {
+
+    async function done(idx, email, name, btn) {
       const msg = document.getElementById('m'+idx).value;
+      if(!msg) { alert("답변 내용을 입력해주세요."); return; }
+      
+      btn.disabled = true;
+      btn.innerText = "처리 중...";
+
       await fetch(API, { method:"POST", body:JSON.stringify({action:"complete", rowIdx:idx, message:msg, email:email, name:name}) });
-      alert("완료!"); location.reload();
+      alert("처리가 완료되었습니다!");
+      location.reload();
     }
     load();
   </script>
