@@ -8,24 +8,22 @@
     :root { --blue: #0b3190; --gray: #f5f5f7; }
     body { font-family:-apple-system, sans-serif; background: var(--gray); display:flex; justify-content:center; padding:40px 20px; margin:0; }
     .card { background:#fff; padding:30px; border-radius:24px; width:100%; max-width:440px; box-shadow:0 8px 30px rgba(0,0,0,0.08); box-sizing:border-box; }
-    .logo { text-align:center; margin-bottom:20px; }
+    .header { text-align:center; margin-bottom:20px; border-bottom: 2px solid var(--gray); padding-bottom: 10px; }
     label { font-size:13px; font-weight:600; color:#86868b; display:block; margin-top:15px; margin-bottom:5px; }
     input, select, textarea { width:100%; padding:14px; border-radius:12px; border:1px solid #d2d2d7; box-sizing:border-box; background:#f9f9f9; font-size:15px; outline:none; }
     .row { display: flex; gap: 8px; }
     .row > * { flex: 1; }
-    /* 이메일 버튼 스타일 */
     .domain-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
     .d-btn { background:#fff; border:1px solid #d2d2d7; padding:10px; border-radius:10px; font-size:11px; cursor:pointer; }
     .d-btn.active { background: var(--blue); color:#fff; border-color: var(--blue); }
     .submit { width:100%; padding:18px; border-radius:16px; border:none; background:var(--blue); color:#fff; font-weight:600; font-size:17px; cursor:pointer; margin-top:25px; }
-    .submit:disabled { background:#ccc; }
   </style>
 </head>
 <body>
   <div class="card">
-    <div class="logo">
-      <img id="main-logo" style="width:70px;">
-      <h2>민원 접수</h2>
+    <div class="header">
+      <h2 style="color:var(--blue); margin:0;">정보부 민원 접수</h2>
+      <p style="font-size:12px; color:#86868b; margin-top:5px;">충남고등학교 정보보안부</p>
     </div>
     <label>학번 선택</label>
     <div class="row">
@@ -44,17 +42,17 @@
       <button class="d-btn" onclick="toggleD('@kakao.com', this)">@kakao.com</button>
     </div>
     <label>문의 유형</label>
-    <select id="type"><option>비밀번호 초기화</option><option>기기 문의</option><option>기타</option></select>
+    <select id="type">
+      <option>비밀번호 초기화</option>
+      <option>기기 문의</option>
+      <option>기타</option>
+    </select>
     <label>상세 내용</label>
     <textarea id="detail" rows="3" placeholder="내용 입력"></textarea>
     <button class="submit" id="s-btn" onclick="send()">접수하기</button>
   </div>
   <script>
     const API = "https://script.google.com/macros/s/AKfycbzT2JkFWLlbxZg_k3uiKkywzkfP_h0Q5Dc2YEhZ4FJeBiTGL058NzM6dDFUmXZWyS_9/exec";
-    const B64 = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbDpzcGFjZT0icHJlc2VydmUiIHdpZHRoPSIzNzQuMTU1MjciIGhlaWdodD0iNDEzLjEzNzc5IiB2aWV3Qm94PSIwIDAgMzc0LjE1NTI3IDQxMy4xMzc3OSI+PGRlZnM+PGNsaXBQYXRoIGlkPSJhIiBjbGlwUGF0aFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTTAgMTg0Mi41MmgxODcwLjg3VjBIMFoiLz48L2NsaXBQYXRoPjwvZGVmcz48ZyBjbGlwLXBhdGg9InVybCgjYSkiIHN0eWxlPSJzdHJva2Utd2lkdGg6Mi44OTU0MiIgdHJhbnNmb3JtPSJtYXRyaXgoLjQ2MDUgMCAwIC0uNDYwNSAtMjQ0LjMxOCA2MzIuMDU1KSI+PGcgc3R5bGU9InN0cm9rZS13aWR0aDoyLjg5NTQyIj48cGF0aCBkPSJNMCAwYy00MC45MSAwLTc0LjA1NyAzMy4xOTUtNzQuMDU3IDc0LjA4MyAwIDQwLjg5OSAzMy4xNDcgNzQuMDYyIDc0LjA1NyA3NC4wNjIgNDAuODg5IDAgNzQuMDY0LTMzLjE2MyA3NC4wNjQtNzQuMDYyQzc0LjA2NCAzMS45NjYgNDIuMTE3IDAgMCAwbTQwNi4wNTggMzQyLjAwMmMtLjAzNyAyNC40MTQtMTkuOTIzIDQwLjY1Mi0zOS44NjEgNDAuNjMxLTU5LjA1My0uMDYtMTYzLjQzNi4wNTMtMjQ1LjI4Ny0uMDczLTQ2Ljk1Ny0uMDYtNzQuMDcxLTM3Ljk2My03NC4wNzEtNzQuMDYxIDAtMjcuMjI2LS4wNjgtMzcuNTMyLS4wNjgtMzcuNTMyaC05My44NDlzLjA0NiAyMS45OTEuMDQ2IDM3LjUzMmMwIDM2LjA4OC0yOC4zOTYgNzMuODU4LTczLjk3OSA3NC4wMDEtODIuMDg3LjI1Ny0xOTcuMDk1LjA5Mi0yNDUuOTI0LS4wNTEtMjIuMTYtLjA2My0zOS40NjctMTguNzUyLTM5LjQ2Ny00MC40NDcgMC04OC43MTguMDcxLTMwOS4zMTkgMC04OC43MTguMDcxLTMwOS4zMTkgMTEyLjg3IDI4LjQ0MyAyMjEuNzIxLTYuMzQ0IDIzNi43NjktMzYuNTY1Qy0xMzQuODA0LTczLjY0OC03Mi44OTgtMTEyLjU3MiAwLTExMi41NDNjNzYuNTMuMDMgMTM8L2c+PC9zdmc+";
-    document.getElementById('main-logo').src = B64;
-    
-    // 학번 채우기
     const cs = document.getElementById('c'), ns = document.getElementById('n');
     for(let i=1;i<=12;i++) cs.add(new Option(i+'반', i));
     for(let i=1;i<=35;i++) ns.add(new Option(i+'번', String(i).padStart(2,'0')));
