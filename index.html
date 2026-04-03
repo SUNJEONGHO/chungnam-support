@@ -7,24 +7,19 @@
   <style>
     :root { --main-blue: #0b3190; --bg-gray: #f5f5f7; }
     body { font-family:-apple-system, sans-serif; background: var(--bg-gray); display:flex; justify-content:center; padding:40px 20px; margin:0; }
-    .card { background:#fff; padding:30px; border-radius:24px; width:100%; max-width:420px; box-shadow:0 8px 30px rgba(0,0,0,0.08); box-sizing:border-box; }
+    .card { background:#fff; padding:30px; border-radius:24px; width:100%; max-width:440px; box-shadow:0 8px 30px rgba(0,0,0,0.08); box-sizing:border-box; }
     
     .logo-container { text-align:center; margin-bottom:20px; }
     h2 { margin:10px 0; font-size:24px; color:#1d1d1f; }
     
     label { font-size:13px; font-weight:600; color:#86868b; margin-left:5px; display:block; margin-top:18px; margin-bottom:5px; }
-    input, select, textarea { width:100%; padding:14px; border-radius:12px; border:1px solid #d2d2d7; box-sizing:border-box; background:#f9f9f9; font-size:16px; outline:none; transition:0.2s; }
+    input, select, textarea { width:100%; padding:14px; border-radius:12px; border:1px solid #d2d2d7; box-sizing:border-box; background:#f9f9f9; font-size:15px; outline:none; transition:0.2s; }
     input:focus, textarea:focus { border-color:var(--main-blue); background:#fff; box-shadow: 0 0 0 4px rgba(11, 49, 144, 0.1); }
 
-    /* ✅ 이메일 도메인 버튼 스타일 */
-    .email-container { display:flex; flex-direction:column; gap:10px; }
-    .domain-group { display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:5px; }
-    .domain-btn { 
-      background:#fff; border:1px solid #d2d2d7; padding:10px; border-radius:10px; 
-      font-size:13px; cursor:pointer; transition:0.2s; color:#1d1d1f; font-weight:500;
-    }
-    .domain-btn:hover { background:#f5f5f7; border-color:#86868b; }
-    .domain-btn.active { background:var(--main-blue); color:#fff; border-color:var(--main-blue); }
+    /* ✅ 이메일 가로 배치 핵심 스타일 */
+    .email-row { display: flex; gap: 8px; align-items: center; }
+    .email-row input { flex: 1.5; } /* 아이디 입력창 비중 */
+    .email-row select { flex: 1; background: #fff; cursor: pointer; } /* 도메인 선택창 비중 */
 
     .btn-submit { width:100%; padding:18px; border-radius:16px; border:none; background:var(--main-blue); color:#fff; font-weight:600; font-size:17px; cursor:pointer; transition: 0.2s; margin-top:30px; }
     .btn-submit:hover { opacity:0.9; transform:translateY(-1px); }
@@ -44,15 +39,15 @@
     <label>이름</label>
     <input type="text" id="name" placeholder="성명을 입력하세요">
     
-    <div class="email-container">
-      <label>이메일 아이디</label>
-      <input type="text" id="email-id" placeholder="아이디만 입력 (예: hong)">
-      <div class="domain-group">
-        <button type="button" class="domain-btn" onclick="setDomain('@chungnamhs.djsch.kr', this)">@충남고</button>
-        <button type="button" class="domain-btn" onclick="setDomain('@gmail.com', this)">@gmail.com</button>
-        <button type="button" class="domain-btn" onclick="setDomain('@naver.com', this)">@naver.com</button>
-        <button type="button" class="domain-btn" onclick="setDomain('@kakao.com', this)">@kakao.com</button>
-      </div>
+    <label>이메일 주소</label>
+    <div class="email-row">
+      <input type="text" id="email-id" placeholder="아이디">
+      <select id="email-domain">
+        <option value="@chungnamhs.djsch.kr">@충남고</option>
+        <option value="@gmail.com">@gmail.com</option>
+        <option value="@naver.com">@naver.com</option>
+        <option value="@kakao.com">@kakao.com</option>
+      </select>
     </div>
     
     <label>문의 유형</label>
@@ -70,33 +65,25 @@
 
   <script>
     const API = "https://script.google.com/macros/s/AKfycby_ZD4x4EIGEmEQA0pQVqMCpdIEjaiFlGDZXsmykVRfbYrGsgbYVT3qf1J7KMEsF6oh/exec";
-    let selectedDomain = "";
-
-    // ✅ 도메인 버튼 선택 함수
-    function setDomain(domain, btn) {
-      selectedDomain = domain;
-      // 모든 버튼 활성화 해제 후 클릭한 버튼만 활성화
-      document.querySelectorAll('.domain-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-    }
 
     async function submit() {
       const btn = document.getElementById('submit-btn');
       const sid = document.getElementById('sid').value;
       const name = document.getElementById('name').value;
       const emailId = document.getElementById('email-id').value;
+      const domain = document.getElementById('email-domain').value;
       const detail = document.getElementById('detail').value;
 
-      if(!sid || !name || !emailId || !selectedDomain || !detail) { 
-        alert("이메일 도메인 버튼을 포함해 모든 항목을 입력해 주세요."); 
+      if(!sid || !name || !emailId || !detail) { 
+        alert("모든 항목을 입력해 주세요."); 
         return; 
       }
 
       btn.disabled = true;
       btn.innerText = "접수 중...";
 
-      // 이메일 아이디와 선택한 도메인을 합침
-      const fullEmail = emailId.includes('@') ? emailId : emailId + selectedDomain;
+      // 아이디와 선택된 도메인 합치기
+      const fullEmail = emailId.includes('@') ? emailId : emailId + domain;
       const data = { 
         studentId: sid, 
         name: name, 
