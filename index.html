@@ -7,8 +7,10 @@
   <style>
     body { font-family:-apple-system, sans-serif; background:#f5f5f7; display:flex; justify-content:center; padding:40px 20px; }
     .card { background:#fff; padding:30px; border-radius:20px; width:100%; max-width:400px; box-shadow:0 4px 15px rgba(0,0,0,0.05); }
-    input, select, textarea { width:100%; padding:15px; margin:10px 0; border-radius:12px; border:1px solid #ddd; box-sizing:border-box; background:#f9f9f9; }
-    .btn { width:100%; padding:15px; border-radius:12px; border:none; background:#0b3190; color:#fff; font-weight:600; cursor:pointer; }
+    input, select, textarea { width:100%; padding:15px; margin:10px 0; border-radius:12px; border:1px solid #ddd; box-sizing:border-box; background:#f9f9f9; font-size:16px; }
+    .btn { width:100%; padding:18px; border-radius:12px; border:none; background:#0b3190; color:#fff; font-weight:600; cursor:pointer; transition: 0.2s; }
+    .btn:disabled { background:#ccc; cursor:not-allowed; }
+    label { font-size:12px; color:#86868b; margin-left:5px; }
   </style>
 </head>
 <body>
@@ -17,23 +19,55 @@
       <svg width="60" viewBox="250 550 375 415"><path d="M936.955 587.936c-40.91 0-74.057 33.195-74.057 74.083 0 40.899 33.147 74.062 74.057 74.062 40.889 0 74.064-33.163 74.064-74.062 0-40.899-31.947-74.083-74.064-74.083m406.058 342.002c-.037 24.414-19.923 40.652-39.861 40.631-59.053-.06-163.436.053-245.287-.073-46.957-.06-74.071-37.963-74.071-74.061 0-27.226-.068-37.532-.068-37.532h-93.849s.046 21.991.046 37.532c0 36.088-28.396 73.858-73.979 74.001-82.087.257-197.095.092-245.924-.051-22.16-.063-39.467-18.752-39.467-40.447 0-88.718.071-309.319.071-309.319 112.87 28.443 221.721-6.344 236.769-36.565-51.573-37.083 10.333-76.007 83.231-75.978 76.53.03 138.214 44.022 169.547 108.661 10.724 22.093 102.977 67.785 236.481 36.565 0 0 .143 239.515.03 309.319" fill="#0b3190" transform="matrix(0.4605 0 0 -0.4605 -244.318 632.055)"/></svg>
       <h2>민원 접수</h2>
     </div>
-    <input type="text" id="sid" placeholder="학번 (예: 20101)">
-    <input type="text" id="name" placeholder="이름">
-    <input type="email" id="email" placeholder="이메일">
+    
+    <label>학번</label>
+    <input type="text" id="sid" placeholder="예: 20101 (또는 자유 입력)">
+    
+    <label>이름</label>
+    <input type="text" id="name" placeholder="성명을 입력하세요">
+    
+    <label>답변 받을 이메일</label>
+    <input type="email" id="email" placeholder="example@chungnamhs.djsch.kr">
+    
+    <label>문의 유형</label>
     <select id="type">
       <option>비밀번호 초기화</option>
       <option>기기 문의</option>
       <option>기타</option>
     </select>
-    <textarea id="detail" placeholder="상세 내용"></textarea>
-    <button class="btn" onclick="submit()">접수하기</button>
+    
+    <label>상세 내용</label>
+    <textarea id="detail" placeholder="도움이 필요한 내용을 적어주세요."></textarea>
+    
+    <button class="btn" id="submit-btn" onclick="submit()">접수하기</button>
   </div>
+
   <script>
-    const API = "https://script.google.com/macros/s/AKfycbzwubeXlhydM3dI2ooayaHv8K4TGGl2-M9FYH-_YHOTzcj2ynUGzQ-bvNIqcVW3uaUb/exec";
+    const API = "https://script.google.com/macros/s/AKfycby_ZD4x4EIGEmEQA0pQVqMCpdIEjaiFlGDZXsmykVRfbYrGsgbYVT3qf1J7KMEsF6oh/exec";
     async function submit() {
-      const data = { studentId:document.getElementById('sid').value, name:document.getElementById('name').value, email:document.getElementById('email').value, type:document.getElementById('type').value, detail:document.getElementById('detail').value };
-      await fetch(API, { method:"POST", body:JSON.stringify(data) });
-      alert("접수 완료!"); location.reload();
+      const btn = document.getElementById('submit-btn');
+      const sid = document.getElementById('sid').value;
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const detail = document.getElementById('detail').value;
+
+      if(!sid || !name || !email || !detail) { alert("모든 항목을 입력해 주세요."); return; }
+
+      // ✅ 4. 연타 방지 (버튼 비활성화)
+      btn.disabled = true;
+      btn.innerText = "접수 중...";
+
+      const data = { studentId:sid, name:name, email:email, type:document.getElementById('type').value, detail:detail };
+      
+      try {
+        await fetch(API, { method:"POST", mode:"no-cors", body:JSON.stringify(data) });
+        alert("접수가 완료되었습니다!");
+        location.reload();
+      } catch (e) {
+        alert("오류가 발생했습니다. 다시 시도해 주세요.");
+        btn.disabled = false;
+        btn.innerText = "접수하기";
+      }
     }
   </script>
 </body>
