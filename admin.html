@@ -12,16 +12,16 @@
     :root { --blue: #0b3190; --gray: #f5f5f7; }
     body { font-family:-apple-system, sans-serif; background: var(--gray); margin:0; overflow-x: hidden; }
     
-    /* 로그인 컨테이너 스타일 */
+    /* 로그인 컨테이너 */
     #login-container { display:flex; justify-content:center; align-items:center; height:100vh; flex-direction:column; padding: 20px; box-sizing: border-box;}
     .login-box { background:#fff; padding:40px; border-radius:15px; box-shadow:0 4px 15px rgba(0,0,0,0.1); text-align:center; width: 100%; max-width: 400px; box-sizing: border-box; }
     
     /* 대시보드 컨테이너 */
     #dashboard-container { display:none; flex-direction:row; width:100%; }
     
-    /* 🔥 [수정됨] PC & 모바일 통합 사이드바 */
+    /* 사이드바 스타일 (PC/모바일 공용) */
     #side { width:300px; background:#fff; height:100vh; padding:25px; border-right:1px solid #ddd; position:fixed; overflow-y:auto; box-sizing:border-box; z-index: 1000; transition: transform 0.3s ease; }
-    .close-btn { display: none; } /* PC에서는 닫기 버튼 숨김 */
+    .close-btn { display: none; }
 
     #main { margin-left:300px; padding:40px; flex:1; box-sizing:border-box; }
     
@@ -32,29 +32,23 @@
     textarea { width:100%; height:80px; margin:10px 0; border-radius:8px; border:1px solid #ddd; padding:10px; box-sizing:border-box; font-family: inherit;}
     h3 { font-size: 14px; color: #86868b; margin-top: 25px; }
 
-    /* 모바일 헤더 (햄버거 메뉴) */
+    /* 모바일 전용 헤더 */
     .mobile-header { display: none; justify-content: space-between; align-items: center; background: #fff; padding: 15px 20px; border-bottom: 1px solid #ddd; width: 100%; box-sizing: border-box; position: sticky; top: 0; z-index: 999;}
     .mobile-header h2 { color: var(--blue); margin: 0; font-size: 18px; }
     .hamburger-btn { font-size: 24px; cursor: pointer; color: #333; background: none; border: none; padding: 0; }
 
-    /* 🔥 [수정됨] 모바일 전용 CSS (최대 너비 768px 이하) */
+    /* 모바일 반응형 처리 */
     @media (max-width: 768px) {
       #dashboard-container { flex-direction: column; }
       .mobile-header { display: flex; }
       #main { margin-left: 0; padding: 20px; }
-      
-      /* 사이드바를 화면 밖으로 숨겨두었다가 열리는 방식으로 변경 (투명도 문제 & 차트 에러 해결) */
-      #side {
-        width: 100%;
-        transform: translateX(-100%); /* 기본적으로 왼쪽 화면 밖으로 숨김 */
-        border-right: none;
-      }
-      #side.open {
-        transform: translateX(0); /* 햄버거 버튼 누르면 화면으로 튀어나옴 */
-      }
-      /* 모바일 전용 닫기 버튼 표시 */
-      .close-btn { display: block; position: absolute; top: 20px; right: 25px; font-size: 35px; cursor: pointer; color: #818181; text-decoration: none; line-height: 1; }
+      #side { width: 100%; transform: translateX(-100%); border-right: none; }
+      #side.open { transform: translateX(0); }
+      .close-btn { display: block; position: absolute; top: 20px; right: 25px; font-size: 35px; cursor: pointer; color: #818181; text-decoration: none; }
     }
+    
+    /* 🔥 추가된 스타일: 인증 이메일 배지 */
+    .auth-email { font-size: 11px; color: #5856d6; background: #f0f0ff; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: normal; vertical-align: middle; border: 1px solid #e0e0ff; }
   </style>
 </head>
 <body>
@@ -92,10 +86,10 @@
       </div>
       
       <h3>질문 유형별 비율</h3>
-      <div style="position: relative; height:200px; width:100%"><canvas id="typeChart"></canvas></div>
+      <div style="height:200px;"><canvas id="typeChart"></canvas></div>
       
       <h3>요일별 접수 현황</h3>
-      <div style="position: relative; height:200px; width:100%"><canvas id="dayChart"></canvas></div>
+      <div style="height:200px;"><canvas id="dayChart"></canvas></div>
 
       <button class="btn" onclick="logout()" style="background-color: #ff3b30; margin-top: 30px;">로그아웃</button>
     </div>
@@ -109,23 +103,16 @@
   <script>
     const API = "https://script.google.com/macros/s/AKfycbzT2JkFWLlbxZg_k3uiKkywzkfP_h0Q5Dc2YEhZ4FJeBiTGL058NzM6dDFUmXZWyS_9/exec";
 
-    // 🔥 [수정 필수 2] 접근을 허용할 선생님 이메일 목록
+    // 🔥 [수정 필수] 허용할 선생님 이메일 목록
     const ALLOWED_EMAILS = [
         "eisiseu@gmail.com",
         "serendipis@chungnamhs.djsch.kr",
         "sunj080407@gmail.com" 
     ];
 
-    // ----------------------------------------------------
-    // [A. 자동 로그인 및 세션 관리]
-    // ----------------------------------------------------
-
-    // 🔥 [추가됨] 페이지가 로드될 때 로컬 스토리지 확인 (새로고침 시 자동 로그인)
     window.onload = function() {
         const savedEmail = localStorage.getItem("adminEmail");
         const savedName = localStorage.getItem("adminName");
-
-        // 저장된 이메일이 있고, 허용된 이메일 목록에 포함되어 있다면 바로 대시보드 표시
         if (savedEmail && ALLOWED_EMAILS.includes(savedEmail)) {
             showDashboard(savedName);
         }
@@ -140,24 +127,20 @@
         return JSON.parse(jsonPayload);
     }
 
-    // 구글 로그인 성공 시
     function handleCredentialResponse(response) {
         const userInfo = decodeJwtResponse(response.credential);
         const userEmail = userInfo.email;
         const userName = userInfo.name;
 
         if (ALLOWED_EMAILS.includes(userEmail)) {
-            // 🔥 [추가됨] 브라우저에 로그인 정보 저장 (새로고침 방지용)
             localStorage.setItem("adminEmail", userEmail);
             localStorage.setItem("adminName", userName);
-            
             showDashboard(userName);
         } else {
-            alert(`접근 권한이 없습니다.\n등록된 관리자 계정으로만 로그인할 수 있습니다.\n\n(로그인 시도: ${userEmail})`);
+            alert(`접근 권한이 없습니다. 등록된 관리자 계정으로 로그인해주세요.`);
         }
     }
 
-    // 화면 전환 및 데이터 로드 함수
     function showDashboard(userName) {
         document.getElementById('login-container').style.display = 'none';
         document.getElementById('dashboard-container').style.display = 'flex';
@@ -165,22 +148,15 @@
         load(); 
     }
 
-    // 🔥 [추가됨] 로그아웃 함수
     function logout() {
         if(confirm("로그아웃 하시겠습니까?")) {
-            localStorage.removeItem("adminEmail");
-            localStorage.removeItem("adminName");
-            location.reload(); // 새로고침하면 로그인 화면으로 돌아감
+            localStorage.clear();
+            location.reload();
         }
     }
 
-    // 모바일 사이드바 열기/닫기
     function openNav() { document.getElementById("side").classList.add("open"); }
     function closeNav() { document.getElementById("side").classList.remove("open"); }
-
-    // ----------------------------------------------------
-    // [B. 데이터 로딩 및 차트]
-    // ----------------------------------------------------
 
     async function load() {
       try {
@@ -190,14 +166,12 @@
         document.getElementById('total').innerText = data.stats.total;
         document.getElementById('done').innerText = data.stats.done;
 
-        // 요일별 차트
         new Chart(document.getElementById('dayChart'), {
           type:'bar',
           data:{ labels:Object.keys(data.dayStats), datasets:[{ label:'접수건수', data:Object.values(data.dayStats), backgroundColor:'#0b3190'}] },
-          options: { maintainAspectRatio: false } // 폰에서 찌그러짐 방지
+          options: { maintainAspectRatio: false }
         });
 
-        // 질문별 통계 차트
         new Chart(document.getElementById('typeChart'), {
           type:'doughnut',
           data:{
@@ -218,37 +192,37 @@
         data.list.forEach((row, idx) => {
           if(row[6] === "완료 ✨") return;
           const card = document.createElement('div'); card.className = 'card';
+          
+          // 🔥 핵심 변경 부분: row[9] (J열) 데이터를 학번/이름 옆에 띄워줍니다.
           card.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <strong style="font-size:18px;">${row[1]} ${row[2]}</strong>
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 10px;">
+              <div>
+                <strong style="font-size:18px;">${row[1]} ${row[2]}</strong>
+                <span class="auth-email" title="구글 로그인 인증 이메일">${row[9] || "인증 정보 없음"}</span>
+              </div>
               <span style="color:#0b3190; font-size:13px; font-weight:bold;">[${row[4]}]</span>
             </div>
-            <p style="margin:15px 0; color:#333; line-height: 1.5;">${row[5]}</p>
+            <p style="margin:15px 0; color:#333; line-height: 1.5; font-size: 15px;">${row[5]}</p>
             <textarea id="m${idx}" placeholder="학생에게 보낼 답변을 입력하세요..."></textarea>
             <button class="btn" onclick="done(${idx},'${row[3]}','${row[2]}', this)">완료 및 이메일 발송</button>
           `;
           listDiv.appendChild(card);
         });
       } catch (error) {
-        document.getElementById('list').innerHTML = "<p style='color:red;'>데이터를 불러오는 데 실패했습니다.</p>";
+        document.getElementById('list').innerHTML = "<p style='color:red;'>데이터 로드 중 오류가 발생했습니다.</p>";
       }
     }
 
     async function done(idx, email, name, btn) {
       const msg = document.getElementById('m'+idx).value;
       if(!msg) { alert("답변 내용을 입력해주세요."); return; }
-      
-      btn.disabled = true; 
-      btn.innerText="처리 중...";
-      
+      btn.disabled = true; btn.innerText="처리 중...";
       try {
         await fetch(API, { method:"POST", body:JSON.stringify({action:"complete", rowIdx:idx, message:msg, email:email, name:name}) });
-        alert("처리가 완료되었습니다!"); 
-        location.reload(); 
+        alert("처리가 완료되었습니다!"); location.reload(); 
       } catch (error) {
         alert("처리 중 오류가 발생했습니다.");
-        btn.disabled = false;
-        btn.innerText="완료 및 이메일 발송";
+        btn.disabled = false; btn.innerText="완료 및 이메일 발송";
       }
     }
   </script>
