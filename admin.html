@@ -1,45 +1,59 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>보안부 관리 대시보드</title>
+  
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+  
   <style>
     :root { --blue: #0b3190; --gray: #f5f5f7; }
     body { font-family:-apple-system, sans-serif; background: var(--gray); margin:0; overflow-x: hidden;}
     
-    #login-container { display:flex; justify-content:center; align-items:center; height:100vh; flex-direction:column; }
-    #dashboard-container { display:none; flex-direction:row; }
+    /* 로그인 화면 */
+    #login-container { display:flex; justify-content:center; align-items:center; height:100vh; flex-direction:column; padding: 20px; box-sizing: border-box;}
+    .login-box { background:#fff; padding:40px; border-radius:15px; box-shadow:0 4px 15px rgba(0,0,0,0.1); text-align:center; width: 100%; max-width: 400px; box-sizing: border-box; }
     
-    /* 🔥 수정됨: top:0, left:0을 명시하여 공중에 뜨거나 터치를 방해하지 않도록 고정 */
+    /* 대시보드 구조 */
+    #dashboard-container { display:none; flex-direction:row; width:100%; }
+    
+    /* 사이드바 */
     #side { top:0; left:0; width:300px; background:#fff; height:100vh; padding:25px; border-right:1px solid #ddd; position:fixed; overflow-y:auto; z-index:1000; transition: transform 0.3s ease; box-sizing: border-box;}
     #main { margin-left:300px; padding:40px; flex:1; box-sizing: border-box;}
     
+    /* 카드 및 통계 디자인 */
     .card { background:#fff; border-radius:15px; padding:20px; margin-bottom:20px; box-shadow:0 2px 10px rgba(0,0,0,0.05); }
+    .stat-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
     .stat { background:var(--blue); color:#fff; padding:15px; border-radius:12px; text-align:center; }
     .student-email { font-size:12px; color:#5856d6; background:#f0f0ff; padding:3px 8px; border-radius:6px; display:inline-block; margin-top:5px; border: 1px solid #e0e0ff;}
     
     .close-btn { display: none; }
 
+    /* 모바일 반응형 처리 */
     @media (max-width: 768px) {
       #main { margin-left:0; padding:20px; }
-      #side { width:100%; transform:translateX(-100%); }
+      #side { width:100%; transform:translateX(-100%); border-right: none;}
       #side.open { transform:translateX(0); }
       .mobile-header { display:flex; justify-content:space-between; align-items:center; padding:15px 20px; background:#fff; border-bottom:1px solid #ddd; position:sticky; top:0; z-index:999;}
-      
-      /* 🔥 수정됨: 터치 영역을 늘리고(padding), z-index를 최상단으로 올려서 무조건 눌리게 함 */
       .close-btn { display:block; position:absolute; top:15px; right:20px; font-size:40px; cursor:pointer; color:#818181; text-decoration:none; z-index:9999; padding:10px; line-height:0.8; }
     }
   </style>
 </head>
 <body>
+  
   <div id="login-container">
-    <div style="background:#fff; padding:40px; border-radius:15px; text-align:center; box-shadow:0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; box-sizing: border-box;">
-      <h2 style="color:var(--blue);">관리자 로그인</h2>
-      <div id="g_id_onload" data-client_id="" data-callback="handleCredentialResponse461701933207-l7r5rb5iiuedj2bfabj9v73ceuc3rqm0.apps.googleusercontent.com"></div>
-      <div class="g_id_signin" data-type="standard"></div>
+    <div class="login-box">
+      <h2 style="color:var(--blue); margin-bottom: 5px;">관리자 로그인</h2>
+      <p style="color:#86868b; margin-bottom: 25px;">지정된 선생님 계정으로 로그인해주세요.</p>
+      
+      <div id="g_id_onload" 
+           data-client_id="461701933207-l7r5rb5iiuedj2bfabj9v73ceuc3rqm0.apps.googleusercontent.com" 
+           data-callback="handleCredentialResponse"
+           data-auto_prompt="false">
+      </div>
+      <div class="g_id_signin" data-type="standard" data-size="large"></div>
     </div>
   </div>
 
@@ -48,86 +62,124 @@
       <h2 style="font-size:18px; margin:0; color:var(--blue);">대시보드</h2>
       <button onclick="openNav()" style="background:none; border:none; font-size:24px; cursor:pointer; padding:5px;">☰</button>
     </div>
+    
     <div id="side">
       <span class="close-btn" onclick="closeNav()">&times;</span>
-      
       <h2 style="color:var(--blue); margin-top:0;">Dashboard</h2>
       <p id="admin-info" style="color:#34c759; font-weight:bold; font-size:13px;"></p>
       
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;">
+      <div class="stat-box">
         <div class="stat"><small>전체</small><br><b id="total" style="font-size:20px;">0</b></div>
         <div class="stat" style="background:#34c759;"><small>완료</small><br><b id="done" style="font-size:20px;">0</b></div>
       </div>
       
       <h3 style="font-size:14px; color:#86868b;">유형 비율</h3>
-      <div style="height:200px;"><canvas id="typeChart"></canvas></div>
+      <div style="height:200px; position:relative;"><canvas id="typeChart"></canvas></div>
       
       <h3 style="font-size:14px; color:#86868b; margin-top:25px;">요일 현황</h3>
-      <div style="height:200px;"><canvas id="dayChart"></canvas></div>
+      <div style="height:200px; position:relative;"><canvas id="dayChart"></canvas></div>
       
       <button onclick="logout()" style="width:100%; padding:10px; background:#ff3b30; color:#fff; border:none; border-radius:10px; margin-top:30px; font-weight:bold; cursor:pointer;">로그아웃</button>
     </div>
     
     <div id="main">
       <h1 style="font-size: 22px;">대기 목록</h1>
-      <div id="list">데이터 로딩 중...</div>
+      <div id="list">데이터를 불러오는 중...</div>
     </div>
   </div>
 
   <script>
-    // 🔥 [필수] 구글 앱스 스크립트 웹 앱 URL로 변경
-    const API = "https://script.google.com/macros/s/AKfycbzEMnSdgPcTzeslJsG7MaC8kQatw9trJE_9WNBQ9i9sEu4GQTQzK-XAw19B8slBqM-1/exec";
-    // 🔥 [필수] 접속을 허용할 선생님 이메일 목록 작성
+    // 🔥 [필수 수정 2] GAS 웹 앱 URL 입력 (따옴표 필수)
+    const API = "https://script.google.com/macros/s/AKfycbxP7S7l-HHk8O-cXVlPvV3fJlDSTx8kTfACw560IhxGWyQLaFrNcRgOGw73ejiVfHvo/exec";
+    
+    // 🔥 [필수 수정 3] 접속 허용할 선생님 이메일 목록
     const ALLOWED = [
+        
 "eisiseu@gmail.com",
             "serendipis@chungnamhs.djsch.kr",
-            "sunj080407@gmail.com" ]; 
+            "sunj080407@gmail.com" 
+    ];
 
+    // 자동 로그인 확인
     window.onload = () => {
       const email = localStorage.getItem("adminEmail");
-      if(email && ALLOWED.includes(email)) showDashboard(localStorage.getItem("adminName"));
+      const name = localStorage.getItem("adminName");
+      if(email && ALLOWED.includes(email)) showDashboard(name);
     }
 
+    // 구글 로그인 처리
     function handleCredentialResponse(response) {
-      const p = JSON.parse(atob(response.credential.split('.')[1]));
-      if(ALLOWED.includes(p.email)) {
-        localStorage.setItem("adminEmail", p.email);
-        localStorage.setItem("adminName", p.name);
-        showDashboard(p.name);
-      } else alert("권한이 없습니다. 등록된 관리자 계정으로 로그인해주세요.");
+      const base64Url = response.credential.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const payloadObj = JSON.parse(decodeURIComponent(atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join('')));
+      
+      if(ALLOWED.includes(payloadObj.email)) {
+        localStorage.setItem("adminEmail", payloadObj.email);
+        localStorage.setItem("adminName", payloadObj.name);
+        showDashboard(payloadObj.name);
+      } else {
+        alert("권한이 없습니다. 등록된 관리자 계정으로 로그인해주세요.");
+      }
     }
 
     function showDashboard(name) {
-      document.getElementById('login-container').style.display='none';
-      document.getElementById('dashboard-container').style.display='flex';
-      document.getElementById('admin-info').innerText = `✔️ ${name} 선생님`;
+      document.getElementById('login-container').style.display = 'none';
+      document.getElementById('dashboard-container').style.display = 'flex';
+      document.getElementById('admin-info').innerText = `✔️ ${name} 선생님 접속 중`;
       load();
     }
 
-    function logout() { localStorage.clear(); location.reload(); }
+    function logout() { 
+      if(confirm("로그아웃 하시겠습니까?")) {
+        localStorage.clear(); 
+        location.reload(); 
+      }
+    }
+    
     function openNav() { document.getElementById("side").classList.add("open"); }
     function closeNav() { document.getElementById("side").classList.remove("open"); }
 
+    // 데이터 로드 및 렌더링
     async function load() {
       try {
         const res = await fetch(API + "?mode=admin_data");
         const data = await res.json();
+        
         document.getElementById('total').innerText = data.stats.total;
         document.getElementById('done').innerText = data.stats.done;
 
-        new Chart(document.getElementById('dayChart'), { type:'bar', data:{labels:Object.keys(data.dayStats), datasets:[{label:'접수건수', data:Object.values(data.dayStats), backgroundColor:'#0b3190'}]}, options:{maintainAspectRatio:false} });
-        new Chart(document.getElementById('typeChart'), { type:'doughnut', data:{labels:Object.keys(data.typeStats), datasets:[{data:Object.values(data.typeStats), backgroundColor:['#ff3b30','#ffcc00','#007aff']}]}, options:{maintainAspectRatio:false} });
+        // 차트 생성
+        new Chart(document.getElementById('dayChart'), { 
+          type:'bar', 
+          data:{labels:Object.keys(data.dayStats), datasets:[{label:'접수건수', data:Object.values(data.dayStats), backgroundColor:'#0b3190'}]}, 
+          options:{maintainAspectRatio:false} 
+        });
+        
+        new Chart(document.getElementById('typeChart'), { 
+          type:'doughnut', 
+          data:{labels:Object.keys(data.typeStats), datasets:[{data:Object.values(data.typeStats), backgroundColor:['#ff3b30','#ffcc00','#007aff']}]}, 
+          options:{maintainAspectRatio:false} 
+        });
 
         const listDiv = document.getElementById('list'); 
         listDiv.innerHTML = "";
         
-        if(data.list.length === 0) { listDiv.innerHTML = "<p>대기 중인 민원이 없습니다.</p>"; return; }
+        // 대기 중인 민원이 없을 때
+        if(data.list.length === 0 || data.list.every(row => row[6] === "완료 ✨")) { 
+          listDiv.innerHTML = "<p style='color:#666;'>대기 중인 민원이 없습니다. 모두 처리되었습니다!</p>"; 
+          return; 
+        }
 
-        data.list.forEach((row, idx) => {
+        // 리스트 카드 생성
+        data.list.forEach((row) => {
+          // G열(Index 6)이 완료 상태면 화면에 그리지 않음 (목록에서 사라짐)
           if(row[6] === "완료 ✨") return; 
-          const card = document.createElement('div'); card.className = 'card';
           
-          // 🔥 수정됨: onclick 안에 직접 데이터를 넣지 않고, data-* 속성으로 안전하게 데이터를 숨겨둡니다.
+          const card = document.createElement('div'); 
+          card.className = 'card';
+          
           card.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
               <div>
@@ -137,44 +189,54 @@
               <span style="color:#0b3190; font-size:13px; font-weight:bold;">[${row[4]}]</span>
             </div>
             <p style="margin:15px 0; color:#333; line-height:1.5;">${row[5]}</p>
-            <textarea id="m${idx}" placeholder="답변 입력..." style="width:100%; height:80px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd; padding:10px; box-sizing:border-box; font-family:inherit;"></textarea>
             
-            <button class="btn" 
-                    data-idx="${idx}" 
-                    data-email="${row[3] || ''}" 
-                    data-name="${row[2] || ''}" 
-                    onclick="processDone(this)" 
-                    style="width:100%; padding:12px; background:var(--blue); color:#fff; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">
+            <textarea id="msg-${row.sheetIndex}" placeholder="학생에게 보낼 답변을 입력하세요..." style="width:100%; height:80px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd; padding:10px; box-sizing:border-box; font-family:inherit;"></textarea>
+            
+            <button class="btn" onclick="completeTask(${row.sheetIndex}, '${row[3] || ''}', '${row[2] || ''}')" style="width:100%; padding:12px; background:var(--blue); color:#fff; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">
               완료 및 이메일 발송
             </button>
           `;
           listDiv.appendChild(card);
         });
       } catch(e) {
-          document.getElementById('list').innerHTML = "<p style='color:red;'>데이터 로딩 중 오류가 발생했습니다.</p>";
+          document.getElementById('list').innerHTML = "<p style='color:red;'>데이터 로딩 중 오류가 발생했습니다. 권한이나 주소를 다시 확인해주세요.</p>";
       }
     }
 
-    // 🔥 수정됨: 버튼 자체(this)를 전달받아, 안전하게 데이터를 꺼내서 처리합니다.
-    async function processDone(btn) {
-      const idx = btn.getAttribute('data-idx');
-      const email = btn.getAttribute('data-email');
-      const name = btn.getAttribute('data-name');
-      const msg = document.getElementById('m'+idx).value;
+    // 처리 완료 및 서버 통신 (수정 방식)
+    async function completeTask(index, email, name) {
+      const message = document.getElementById(`msg-${index}`).value;
+      
+      if(!message) { 
+        alert("답변 내용을 입력해주세요."); 
+        return; 
+      }
 
-      if(!msg) { alert("답변 내용을 입력해주세요."); return; }
-      
-      btn.disabled = true; 
-      btn.innerText = "처리 중...";
-      
-      try {
-        await fetch(API, { method:"POST", body:JSON.stringify({action:"complete", rowIdx:idx, message:msg, email:email, name:name}) });
-        alert("처리가 완료되었습니다!"); 
-        location.reload(); 
-      } catch (error) {
-        alert("처리 중 오류가 발생했습니다.");
-        btn.disabled = false; 
-        btn.innerText = "완료 및 이메일 발송";
+      if(confirm("이 답변으로 처리를 완료하고 이메일을 발송하시겠습니까?")) {
+        const btn = document.querySelector(`button[onclick="completeTask(${index}, '${email}', '${name}')"]`);
+        btn.disabled = true; 
+        btn.innerText = "이메일 발송 및 처리 중...";
+        
+        try {
+          // 서버(GAS)에 해당 행(index) 수정 및 메일 발송 요청
+          await fetch(API, { 
+            method:"POST", 
+            body:JSON.stringify({
+              action: "complete", 
+              rowIdx: index, 
+              message: message, 
+              email: email, 
+              name: name
+            }) 
+          });
+          
+          alert("처리가 완료되었습니다! 학생에게 이메일이 발송되었습니다."); 
+          location.reload(); // 새로고침하면 목록에서 자동으로 사라짐
+        } catch (error) {
+          alert("처리 중 오류가 발생했습니다.");
+          btn.disabled = false; 
+          btn.innerText = "완료 및 이메일 발송";
+        }
       }
     }
   </script>
