@@ -1,12 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8"><title>정보부 관리자</title>
+  <meta charset="UTF-8">
+  <title>보안부 관리자 - 선생님 전용</title>
+  
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  
   <style>
-    body { font-family:sans-serif; background:#f5f5f7; display:flex; margin:0; }
-    #side { width:300px; background:#fff; height:100vh; padding:25px; border-right:1px solid #ddd; position:fixed; overflow-y:auto; }
-    #main { margin-left:350px; padding:40px; flex:1; }
+    body { font-family:sans-serif; background:#f5f5f7; margin:0; }
+    
+    /* 로그인 컨테이너 스타일 */
+    #login-container { display:flex; justify-content:center; align-items:center; height:100vh; flex-direction:column; }
+    .login-box { background:#fff; padding:40px; border-radius:15px; box-shadow:0 4px 15px rgba(0,0,0,0.1); text-align:center; }
+    
+    /* 대시보드 컨테이너 (처음엔 숨김) */
+    #dashboard-container { display:none; flex-direction:row; width:100%; }
+    
+    /* 기존 스타일 유지 */
+    #side { width:300px; background:#fff; height:100vh; padding:25px; border-right:1px solid #ddd; position:fixed; overflow-y:auto; box-sizing:border-box; }
+    #main { margin-left:300px; padding:40px; flex:1; box-sizing:border-box; }
     .card { background:#fff; border-radius:15px; padding:20px; margin-bottom:20px; box-shadow:0 2px 10px rgba(0,0,0,0.05); }
     .stat-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
     .stat { background:#0b3190; color:#fff; padding:15px; border-radius:12px; text-align:center; }
@@ -16,74 +29,174 @@
   </style>
 </head>
 <body>
-  <div id="side">
-    <h2 style="color:#0b3190;">Admin Dashboard</h2>
-    <div class="stat-box">
-      <div class="stat"><small>전체</small><br><span id="total" style="font-size:20px; font-weight:bold;">0</span></div>
-      <div class="stat" style="background:#34c759;"><small>완료</small><br><span id="done" style="font-size:20px; font-weight:bold;">0</span></div>
+
+  <div id="login-container">
+    <div class="login-box">
+      <h2 style="color:#0b3190; margin-bottom: 5px;">보안부 민원 관리자</h2>
+      <p style="color:#86868b; margin-bottom: 25px;">지정된 선생님 계정으로 로그인해주세요.</p>
+      
+      <div id="g_id_onload"
+           data-client_id="461701933207-l7r5rb5iiuedj2bfabj9v73ceuc3rqm0.apps.googleusercontent.com"
+           data-context="signin"
+           data-ux_mode="popup"
+           data-callback="handleCredentialResponse"
+           data-auto_prompt="false">
+      </div>
+      <div class="g_id_signin" 
+           data-type="standard" 
+           data-shape="rectangular" 
+           data-theme="outline" 
+           data-text="signin_with" 
+           data-size="large" 
+           data-logo_alignment="left">
+      </div>
+    </div>
+  </div>
+
+  <div id="dashboard-container">
+    <div id="side">
+      <h2 style="color:#0b3190;">Admin Dashboard</h2>
+      <p id="admin-info" style="font-size: 13px; color: #34c759; font-weight: bold;"></p> <div class="stat-box">
+        <div class="stat"><small>전체</small><br><span id="total" style="font-size:20px; font-weight:bold;">0</span></div>
+        <div class="stat" style="background:#34c759;"><small>완료</small><br><span id="done" style="font-size:20px; font-weight:bold;">0</span></div>
+      </div>
+      
+      <h3>질문 유형별 비율</h3>
+      <canvas id="typeChart"></canvas>
+      
+      <h3>요일별 접수 현황</h3>
+      <canvas id="dayChart"></canvas>
     </div>
     
-    <h3>질문 유형별 비율</h3>
-    <canvas id="typeChart"></canvas>
-    
-    <h3>요일별 접수 현황</h3>
-    <canvas id="dayChart"></canvas>
-  </div>
-  <div id="main">
-    <h1>처리 대기 목록</h1>
-    <div id="list">데이터를 불러오는 중...</div>
+    <div id="main">
+      <h1>처리 대기 목록</h1>
+      <div id="list">데이터를 불러오는 중...</div>
+    </div>
   </div>
 
   <script>
     const API = "https://script.google.com/macros/s/AKfycbzT2JkFWLlbxZg_k3uiKkywzkfP_h0Q5Dc2YEhZ4FJeBiTGL058NzM6dDFUmXZWyS_9/exec";
 
+    // ----------------------------------------------------
+    // [A. 구글 로그인 인증 및 권한 검사]
+    // ----------------------------------------------------
+    
+    // JWT 토큰 디코딩 함수 (구글에서 준 암호화된 유저 정보를 해독)
+    function decodeJwtResponse(token) {
+        let base64Url = token.split('.')[1];
+        let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        let jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(jsonPayload);
+    }
+
+    // 구글 로그인 완료 시 실행되는 콜백 함수
+    function handleCredentialResponse(response) {
+        const userInfo = decodeJwtResponse(response.credential);
+        const userEmail = userInfo.email;
+        const userName = userInfo.name;
+
+        console.log("로그인 시도: " + userEmail);
+
+        // 🔥 [수정 필수 2] 접근을 허용할 선생님 이메일 목록 작성 (화이트리스트)
+        const ALLOWED_EMAILS = [
+            "eisiseu@gmail.com",
+            "serendipis@chungnamhs.djsch.kr",
+            "sunj080407@gmail.com" // 테스트를 위해 본인 이메일도 넣어두세요!
+        ];
+
+        // 로그인한 이메일이 허용 목록에 있는지 검사
+        if (ALLOWED_EMAILS.includes(userEmail)) {
+            // (1) 인증 성공: 로그인 화면 숨기고 대시보드 표시
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('dashboard-container').style.display = 'flex';
+            
+            // (2) 사이드바에 접속자 이름 표시
+            document.getElementById('admin-info').innerText = `✔️ 접속자: ${userName} 선생님`;
+
+            // (3) 민원 데이터 불러오기 실행 (인증된 사람만 데이터 요청)
+            load(); 
+        } else {
+            // (4) 인증 실패: 목록에 없는 이메일인 경우 차단
+            alert(`접근 권한이 없습니다.\n등록된 관리자 계정으로만 로그인할 수 있습니다.\n\n(로그인 시도한 계정: ${userEmail})`);
+        }
+    }
+
+    // ----------------------------------------------------
+    // [B. 대시보드 데이터 로딩 및 처리 (기존 코드와 동일)]
+    // ----------------------------------------------------
+
     async function load() {
-      const res = await fetch(API + "?mode=admin_data");
-      const data = await res.json();
-      document.getElementById('total').innerText = data.stats.total;
-      document.getElementById('done').innerText = data.stats.done;
+      try {
+        const res = await fetch(API + "?mode=admin_data");
+        const data = await res.json();
+        
+        document.getElementById('total').innerText = data.stats.total;
+        document.getElementById('done').innerText = data.stats.done;
 
-      // 요일별 차트
-      new Chart(document.getElementById('dayChart'), {
-        type:'bar',
-        data:{ labels:Object.keys(data.dayStats), datasets:[{ label:'접수건수', data:Object.values(data.dayStats), backgroundColor:'#0b3190'}] }
-      });
+        // 요일별 차트
+        new Chart(document.getElementById('dayChart'), {
+          type:'bar',
+          data:{ labels:Object.keys(data.dayStats), datasets:[{ label:'접수건수', data:Object.values(data.dayStats), backgroundColor:'#0b3190'}] }
+        });
 
-      // ✅ 질문별 통계 차트 (도넛 모양)
-      new Chart(document.getElementById('typeChart'), {
-        type:'doughnut',
-        data:{
-          labels: Object.keys(data.typeStats),
-          datasets: [{ data: Object.values(data.typeStats), backgroundColor: ['#ff3b30', '#ffcc00', '#007aff'] }]
-        },
-        options: { plugins: { legend: { position: 'bottom' } } }
-      });
+        // 질문별 통계 차트 (도넛)
+        new Chart(document.getElementById('typeChart'), {
+          type:'doughnut',
+          data:{
+            labels: Object.keys(data.typeStats),
+            datasets: [{ data: Object.values(data.typeStats), backgroundColor: ['#ff3b30', '#ffcc00', '#007aff'] }]
+          },
+          options: { plugins: { legend: { position: 'bottom' } } }
+        });
 
-      const listDiv = document.getElementById('list'); listDiv.innerHTML = "";
-      data.list.forEach((row, idx) => {
-        if(row[6] === "완료 ✨") return;
-        const card = document.createElement('div'); card.className = 'card';
-        card.innerHTML = `
-          <div style="display:flex; justify-content:space-between;">
-            <strong>${row[1]} ${row[2]}</strong>
-            <span style="color:#0b3190; font-size:12px;">${row[4]}</span>
-          </div>
-          <p style="margin:10px 0; color:#333;">${row[5]}</p>
-          <textarea id="m${idx}" placeholder="학생에게 보낼 답변을 입력하세요..."></textarea>
-          <button class="btn" onclick="done(${idx},'${row[3]}','${row[2]}', this)">완료 및 이메일 발송</button>
-        `;
-        listDiv.appendChild(card);
-      });
+        // 대기 목록 렌더링
+        const listDiv = document.getElementById('list'); 
+        listDiv.innerHTML = "";
+        
+        if(data.list.length === 0) {
+            listDiv.innerHTML = "<p style='color:#666;'>대기 중인 민원이 없습니다.</p>";
+            return;
+        }
+
+        data.list.forEach((row, idx) => {
+          if(row[6] === "완료 ✨") return;
+          const card = document.createElement('div'); card.className = 'card';
+          card.innerHTML = `
+            <div style="display:flex; justify-content:space-between;">
+              <strong>${row[1]} ${row[2]}</strong>
+              <span style="color:#0b3190; font-size:12px;">${row[4]}</span>
+            </div>
+            <p style="margin:10px 0; color:#333;">${row[5]}</p>
+            <textarea id="m${idx}" placeholder="학생에게 보낼 답변을 입력하세요..."></textarea>
+            <button class="btn" onclick="done(${idx},'${row[3]}','${row[2]}', this)">완료 및 이메일 발송</button>
+          `;
+          listDiv.appendChild(card);
+        });
+      } catch (error) {
+        console.error("데이터 로딩 실패:", error);
+        document.getElementById('list').innerHTML = "<p style='color:red;'>데이터를 불러오는 데 실패했습니다. 통신 상태를 확인해주세요.</p>";
+      }
     }
 
     async function done(idx, email, name, btn) {
       const msg = document.getElementById('m'+idx).value;
       if(!msg) { alert("답변 내용을 입력해주세요."); return; }
-      btn.disabled = true; btn.innerText="처리 중...";
-      await fetch(API, { method:"POST", body:JSON.stringify({action:"complete", rowIdx:idx, message:msg, email:email, name:name}) });
-      alert("처리가 완료되었습니다!"); location.reload();
+      
+      btn.disabled = true; 
+      btn.innerText="처리 중...";
+      
+      try {
+        await fetch(API, { method:"POST", body:JSON.stringify({action:"complete", rowIdx:idx, message:msg, email:email, name:name}) });
+        alert("처리가 완료되었습니다!"); 
+        location.reload(); // 새로고침
+      } catch (error) {
+        alert("처리 중 오류가 발생했습니다.");
+        btn.disabled = false;
+        btn.innerText="완료 및 이메일 발송";
+      }
     }
-    load();
   </script>
 </body>
 </html>
