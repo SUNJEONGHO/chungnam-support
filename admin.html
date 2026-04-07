@@ -10,48 +10,50 @@
   
   <style>
     :root { --blue: #0b3190; --gray: #f5f5f7; }
-    body { font-family:-apple-system, sans-serif; background: var(--gray); margin:0; }
+    body { font-family:-apple-system, sans-serif; background: var(--gray); margin:0; overflow-x: hidden; }
     
     /* 로그인 컨테이너 스타일 */
     #login-container { display:flex; justify-content:center; align-items:center; height:100vh; flex-direction:column; padding: 20px; box-sizing: border-box;}
     .login-box { background:#fff; padding:40px; border-radius:15px; box-shadow:0 4px 15px rgba(0,0,0,0.1); text-align:center; width: 100%; max-width: 400px; box-sizing: border-box; }
     
-    /* 대시보드 컨테이너 (처음엔 숨김) */
+    /* 대시보드 컨테이너 */
     #dashboard-container { display:none; flex-direction:row; width:100%; }
     
-    /* 기존 스타일 유지 */
-    #side { width:300px; background:#fff; height:100vh; padding:25px; border-right:1px solid #ddd; position:fixed; overflow-y:auto; box-sizing:border-box; }
+    /* 🔥 [수정됨] PC & 모바일 통합 사이드바 */
+    #side { width:300px; background:#fff; height:100vh; padding:25px; border-right:1px solid #ddd; position:fixed; overflow-y:auto; box-sizing:border-box; z-index: 1000; transition: transform 0.3s ease; }
+    .close-btn { display: none; } /* PC에서는 닫기 버튼 숨김 */
+
     #main { margin-left:300px; padding:40px; flex:1; box-sizing:border-box; }
+    
     .card { background:#fff; border-radius:15px; padding:20px; margin-bottom:20px; box-shadow:0 2px 10px rgba(0,0,0,0.05); }
     .stat-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
     .stat { background:#0b3190; color:#fff; padding:15px; border-radius:12px; text-align:center; }
-    .btn { background:#0b3190; color:#fff; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; width: 100%; margin-top: 10px; }
+    .btn { background:#0b3190; color:#fff; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; width: 100%; margin-top: 10px; font-weight: bold; }
     textarea { width:100%; height:80px; margin:10px 0; border-radius:8px; border:1px solid #ddd; padding:10px; box-sizing:border-box; font-family: inherit;}
     h3 { font-size: 14px; color: #86868b; margin-top: 25px; }
 
-    /* 🔥 [추가됨] 모바일 전용 CSS (최대 너비 768px 이하) */
+    /* 모바일 헤더 (햄버거 메뉴) */
+    .mobile-header { display: none; justify-content: space-between; align-items: center; background: #fff; padding: 15px 20px; border-bottom: 1px solid #ddd; width: 100%; box-sizing: border-box; position: sticky; top: 0; z-index: 999;}
+    .mobile-header h2 { color: var(--blue); margin: 0; font-size: 18px; }
+    .hamburger-btn { font-size: 24px; cursor: pointer; color: #333; background: none; border: none; padding: 0; }
+
+    /* 🔥 [수정됨] 모바일 전용 CSS (최대 너비 768px 이하) */
     @media (max-width: 768px) {
-      #dashboard-container { flex-direction: column; } /* 위아래 배치로 변경 */
-      #side { display: none; } /* 사이드바 숨김 */
-      #main { margin-left: 0; padding: 20px; } /* 메인 콘텐츠 여백 제거 */
+      #dashboard-container { flex-direction: column; }
+      .mobile-header { display: flex; }
+      #main { margin-left: 0; padding: 20px; }
       
-      /* 모바일 상단 햄버거 메뉴 */
-      .mobile-header { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 15px 20px; border-bottom: 1px solid #ddd; width: 100%; box-sizing: border-box;}
-      .mobile-header h2 { color: var(--blue); margin: 0; font-size: 18px; }
-      .hamburger-btn { font-size: 24px; cursor: pointer; color: #333; background: none; border: none; padding: 0; outline: none; }
-      
-      /* 모바일 오버레이 메뉴 */
-      .mobile-overlay { height: 100%; width: 0; position: fixed; z-index: 1000; top: 0; left: 0; background-color: rgba(255,255,255, 0.95); overflow-x: hidden; transition: 0.5s; padding-top: 60px; box-sizing: border-box; display: none;}
-      .mobile-overlay-content { position: relative; width: 100%; text-align: left; padding: 20px; box-sizing: border-box;}
-      .mobile-overlay-content #side { display: block; position: static; width: 100%; height: auto; border: none; padding: 0; background: none; }
-      .mobile-overlay .closebtn { position: absolute; top: 10px; right: 25px; font-size: 40px; cursor: pointer; color: #818181; }
-      .mobile-overlay-content h2 { margin-top: 0; color: var(--blue); }
-    }
-    
-    /* PC에서는 모바일 헤더 숨김 */
-    @media (min-width: 769px) {
-      .mobile-header { display: none; }
-      .mobile-overlay { display: none !important; }
+      /* 사이드바를 화면 밖으로 숨겨두었다가 열리는 방식으로 변경 (투명도 문제 & 차트 에러 해결) */
+      #side {
+        width: 100%;
+        transform: translateX(-100%); /* 기본적으로 왼쪽 화면 밖으로 숨김 */
+        border-right: none;
+      }
+      #side.open {
+        transform: translateX(0); /* 햄버거 버튼 누르면 화면으로 튀어나옴 */
+      }
+      /* 모바일 전용 닫기 버튼 표시 */
+      .close-btn { display: block; position: absolute; top: 20px; right: 25px; font-size: 35px; cursor: pointer; color: #818181; text-decoration: none; line-height: 1; }
     }
   </style>
 </head>
@@ -69,14 +71,7 @@
            data-callback="handleCredentialResponse"
            data-auto_prompt="false">
       </div>
-      <div class="g_id_signin" 
-           data-type="standard" 
-           data-shape="rectangular" 
-           data-theme="outline" 
-           data-text="signin_with" 
-           data-size="large" 
-           data-logo_alignment="left">
-      </div>
+      <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-size="large"></div>
     </div>
   </div>
 
@@ -86,43 +81,27 @@
       <button class="hamburger-btn" onclick="openNav()">☰</button>
     </div>
 
-    <div id="myNav" class="mobile-overlay">
-      <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-      <div class="mobile-overlay-content">
-        <div id="side-mobile">
-          <h2 style="color:#0b3190; margin-top: 0;">Admin Dashboard</h2>
-          <p id="admin-info-mobile" style="font-size: 13px; color: #34c759; font-weight: bold;"></p>
-          
-          <div class="stat-box">
-            <div class="stat"><small>전체</small><br><span id="total-mobile" style="font-size:20px; font-weight:bold;">0</span></div>
-            <div class="stat" style="background:#34c759;"><small>완료</small><br><span id="done-mobile" style="font-size:20px; font-weight:bold;">0</span></div>
-          </div>
-          
-          <h3>질문 유형별 비율</h3>
-          <canvas id="typeChart-mobile"></canvas>
-          
-          <h3>요일별 접수 현황</h3>
-          <canvas id="dayChart-mobile"></canvas>
-        </div>
-      </div>
-    </div>
-
     <div id="side">
+      <a href="javascript:void(0)" class="close-btn" onclick="closeNav()">&times;</a>
       <h2 style="color:#0b3190; margin-top: 0;">Admin Dashboard</h2>
-      <p id="admin-info" style="font-size: 13px; color: #34c759; font-weight: bold;"></p> <div class="stat-box">
+      <p id="admin-info" style="font-size: 13px; color: #34c759; font-weight: bold;"></p>
+      
+      <div class="stat-box">
         <div class="stat"><small>전체</small><br><span id="total" style="font-size:20px; font-weight:bold;">0</span></div>
         <div class="stat" style="background:#34c759;"><small>완료</small><br><span id="done" style="font-size:20px; font-weight:bold;">0</span></div>
       </div>
       
       <h3>질문 유형별 비율</h3>
-      <canvas id="typeChart"></canvas>
+      <div style="position: relative; height:200px; width:100%"><canvas id="typeChart"></canvas></div>
       
       <h3>요일별 접수 현황</h3>
-      <canvas id="dayChart"></canvas>
+      <div style="position: relative; height:200px; width:100%"><canvas id="dayChart"></canvas></div>
+
+      <button class="btn" onclick="logout()" style="background-color: #ff3b30; margin-top: 30px;">로그아웃</button>
     </div>
     
     <div id="main">
-      <h1>처리 대기 목록</h1>
+      <h1 style="font-size: 22px;">처리 대기 목록</h1>
       <div id="list">데이터를 불러오는 중...</div>
     </div>
   </div>
@@ -130,11 +109,28 @@
   <script>
     const API = "https://script.google.com/macros/s/AKfycbzT2JkFWLlbxZg_k3uiKkywzkfP_h0Q5Dc2YEhZ4FJeBiTGL058NzM6dDFUmXZWyS_9/exec";
 
+    // 🔥 [수정 필수 2] 접근을 허용할 선생님 이메일 목록
+    const ALLOWED_EMAILS = [
+        "eisiseu@gmail.com",
+        "serendipis@chungnamhs.djsch.kr",
+        "sunj080407@gmail.com" 
+    ];
+
     // ----------------------------------------------------
-    // [A. 구글 로그인 인증 및 권한 검사]
+    // [A. 자동 로그인 및 세션 관리]
     // ----------------------------------------------------
-    
-    // JWT 토큰 디코딩 함수 (구글에서 준 암호화된 유저 정보를 해독)
+
+    // 🔥 [추가됨] 페이지가 로드될 때 로컬 스토리지 확인 (새로고침 시 자동 로그인)
+    window.onload = function() {
+        const savedEmail = localStorage.getItem("adminEmail");
+        const savedName = localStorage.getItem("adminName");
+
+        // 저장된 이메일이 있고, 허용된 이메일 목록에 포함되어 있다면 바로 대시보드 표시
+        if (savedEmail && ALLOWED_EMAILS.includes(savedEmail)) {
+            showDashboard(savedName);
+        }
+    };
+
     function decodeJwtResponse(token) {
         let base64Url = token.split('.')[1];
         let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -144,54 +140,46 @@
         return JSON.parse(jsonPayload);
     }
 
-    // 구글 로그인 완료 시 실행되는 콜백 함수
+    // 구글 로그인 성공 시
     function handleCredentialResponse(response) {
         const userInfo = decodeJwtResponse(response.credential);
         const userEmail = userInfo.email;
         const userName = userInfo.name;
 
-        console.log("로그인 시도: " + userEmail);
-
-        // 🔥 [수정 필수] 접근을 허용할 선생님 이메일 목록 작성 (화이트리스트)
-        const ALLOWED_EMAILS = [
-            "eisiseu@gmail.com",
-            "serendipis@chungnamhs.djsch.kr",
-            "sunj080407@gmail.com" // 테스트를 위해 본인 이메일도 넣어두세요!
-        ];
-
-        // 로그인한 이메일이 허용 목록에 있는지 검사
         if (ALLOWED_EMAILS.includes(userEmail)) {
-            // (1) 인증 성공: 로그인 화면 숨기고 대시보드 표시
-            document.getElementById('login-container').style.display = 'none';
-            document.getElementById('dashboard-container').style.display = 'flex';
+            // 🔥 [추가됨] 브라우저에 로그인 정보 저장 (새로고침 방지용)
+            localStorage.setItem("adminEmail", userEmail);
+            localStorage.setItem("adminName", userName);
             
-            // (2) 사이드바에 접속자 이름 표시 (PC 및 모바일)
-            document.getElementById('admin-info').innerText = `✔️ 접속자: ${userName} 선생님`;
-            document.getElementById('admin-info-mobile').innerText = `✔️ 접속자: ${userName} 선생님`;
-
-            // (3) 민원 데이터 불러오기 실행 (인증된 사람만 데이터 요청)
-            load(); 
+            showDashboard(userName);
         } else {
-            // (4) 인증 실패: 목록에 없는 이메일인 경우 차단
-            alert(`접근 권한이 없습니다.\n등록된 관리자 계정으로만 로그인할 수 있습니다.\n\n(로그인 시도한 계정: ${userEmail})`);
+            alert(`접근 권한이 없습니다.\n등록된 관리자 계정으로만 로그인할 수 있습니다.\n\n(로그인 시도: ${userEmail})`);
         }
     }
 
-    // 🔥 [추가됨] 모바일 오버레이 메뉴 열기/닫기 함수
-    function openNav() {
-        document.getElementById("myNav").style.display = "block";
-        document.getElementById("myNav").style.width = "100%";
+    // 화면 전환 및 데이터 로드 함수
+    function showDashboard(userName) {
+        document.getElementById('login-container').style.display = 'none';
+        document.getElementById('dashboard-container').style.display = 'flex';
+        document.getElementById('admin-info').innerText = `✔️ 접속자: ${userName} 선생님`;
+        load(); 
     }
 
-    function closeNav() {
-        document.getElementById("myNav").style.width = "0";
-        setTimeout(() => {
-          document.getElementById("myNav").style.display = "none";
-        }, 500); // 애니메이션 시간(0.5s) 후 숨김
+    // 🔥 [추가됨] 로그아웃 함수
+    function logout() {
+        if(confirm("로그아웃 하시겠습니까?")) {
+            localStorage.removeItem("adminEmail");
+            localStorage.removeItem("adminName");
+            location.reload(); // 새로고침하면 로그인 화면으로 돌아감
+        }
     }
+
+    // 모바일 사이드바 열기/닫기
+    function openNav() { document.getElementById("side").classList.add("open"); }
+    function closeNav() { document.getElementById("side").classList.remove("open"); }
 
     // ----------------------------------------------------
-    // [B. 대시보드 데이터 로딩 및 처리]
+    // [B. 데이터 로딩 및 차트]
     // ----------------------------------------------------
 
     async function load() {
@@ -199,50 +187,26 @@
         const res = await fetch(API + "?mode=admin_data");
         const data = await res.json();
         
-        // PC 통계 데이터 업데이트
         document.getElementById('total').innerText = data.stats.total;
         document.getElementById('done').innerText = data.stats.done;
-        
-        // 모바일 통계 데이터 업데이트
-        document.getElementById('total-mobile').innerText = data.stats.total;
-        document.getElementById('done-mobile').innerText = data.stats.done;
 
-        // --- 요일별 차트 ---
-        // PC 요일별 차트
+        // 요일별 차트
         new Chart(document.getElementById('dayChart'), {
           type:'bar',
-          data:{ labels:Object.keys(data.dayStats), datasets:[{ label:'접수건수', data:Object.values(data.dayStats), backgroundColor:'#0b3190'}] }
-        });
-        
-        // 🔥 모바일 요일별 차트
-        new Chart(document.getElementById('dayChart-mobile'), {
-          type:'bar',
           data:{ labels:Object.keys(data.dayStats), datasets:[{ label:'접수건수', data:Object.values(data.dayStats), backgroundColor:'#0b3190'}] },
-          options: { maintainAspectRatio: false } // 모바일에서 차트 비율 깨짐 방지
+          options: { maintainAspectRatio: false } // 폰에서 찌그러짐 방지
         });
 
-        // --- 질문별 통계 차트 (도넛) ---
-        // PC 질문별 통계 차트
+        // 질문별 통계 차트
         new Chart(document.getElementById('typeChart'), {
           type:'doughnut',
           data:{
             labels: Object.keys(data.typeStats),
             datasets: [{ data: Object.values(data.typeStats), backgroundColor: ['#ff3b30', '#ffcc00', '#007aff'] }]
           },
-          options: { plugins: { legend: { position: 'bottom' } } }
-        });
-        
-        // 🔥 모바일 질문별 통계 차트
-        new Chart(document.getElementById('typeChart-mobile'), {
-          type:'doughnut',
-          data:{
-            labels: Object.keys(data.typeStats),
-            datasets: [{ data: Object.values(data.typeStats), backgroundColor: ['#ff3b30', '#ffcc00', '#007aff'] }]
-          },
-          options: { plugins: { legend: { position: 'bottom' } }, maintainAspectRatio: false } // 모바일에서 차트 비율 깨짐 방지
+          options: { plugins: { legend: { position: 'bottom' } }, maintainAspectRatio: false }
         });
 
-        // 대기 목록 렌더링
         const listDiv = document.getElementById('list'); 
         listDiv.innerHTML = "";
         
@@ -255,19 +219,18 @@
           if(row[6] === "완료 ✨") return;
           const card = document.createElement('div'); card.className = 'card';
           card.innerHTML = `
-            <div style="display:flex; justify-content:space-between;">
-              <strong>${row[1]} ${row[2]}</strong>
-              <span style="color:#0b3190; font-size:12px;">${row[4]}</span>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <strong style="font-size:18px;">${row[1]} ${row[2]}</strong>
+              <span style="color:#0b3190; font-size:13px; font-weight:bold;">[${row[4]}]</span>
             </div>
-            <p style="margin:10px 0; color:#333;">${row[5]}</p>
+            <p style="margin:15px 0; color:#333; line-height: 1.5;">${row[5]}</p>
             <textarea id="m${idx}" placeholder="학생에게 보낼 답변을 입력하세요..."></textarea>
             <button class="btn" onclick="done(${idx},'${row[3]}','${row[2]}', this)">완료 및 이메일 발송</button>
           `;
           listDiv.appendChild(card);
         });
       } catch (error) {
-        console.error("데이터 로딩 실패:", error);
-        document.getElementById('list').innerHTML = "<p style='color:red;'>데이터를 불러오는 데 실패했습니다. 통신 상태를 확인해주세요.</p>";
+        document.getElementById('list').innerHTML = "<p style='color:red;'>데이터를 불러오는 데 실패했습니다.</p>";
       }
     }
 
@@ -281,7 +244,7 @@
       try {
         await fetch(API, { method:"POST", body:JSON.stringify({action:"complete", rowIdx:idx, message:msg, email:email, name:name}) });
         alert("처리가 완료되었습니다!"); 
-        location.reload(); // 새로고침
+        location.reload(); 
       } catch (error) {
         alert("처리 중 오류가 발생했습니다.");
         btn.disabled = false;
