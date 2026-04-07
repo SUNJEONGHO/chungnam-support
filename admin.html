@@ -3,26 +3,43 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>충남고 보안부 관리 대시보드</title>
+  <title>보안부 관리 대시보드</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root { --blue: #0b3190; --gray: #f5f5f7; }
     body { font-family:-apple-system, sans-serif; background: var(--gray); margin:0; overflow-x: hidden;}
-    #login-container { display:flex; justify-content:center; align-items:center; height:100vh; flex-direction:column; padding: 20px; }
+    #login-container { display:flex; justify-content:center; align-items:center; height:100vh; flex-direction:column; padding:20px; }
     #dashboard-container { display:none; flex-direction:row; width:100%; }
-    #side { top:0; left:0; width:300px; background:#fff; height:100vh; padding:25px; border-right:1px solid #ddd; position:fixed; overflow-y:auto; z-index:1000; transition: transform 0.3s ease; box-sizing: border-box;}
+    
+    #side { top:0; left:0; width:300px; background:#fff; height:100vh; padding:25px; border-right:1px solid #ddd; position:fixed; overflow-y:auto; z-index:1000; box-sizing: border-box;}
     #main { margin-left:300px; padding:40px; flex:1; box-sizing: border-box;}
-    .card { background:#fff; border-radius:15px; padding:20px; margin-bottom:20px; box-shadow:0 2px 10px rgba(0,0,0,0.05); }
+    
+    /* 🔥 리스트를 양옆으로 배치 (PC화면) */
+    .lists-wrapper { display: flex; gap: 30px; align-items: flex-start; }
+    .list-column { flex: 1; background: #fff; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); min-height: 500px; }
+    
+    .card { background:#fff; border-radius:15px; padding:20px; margin-bottom:20px; border: 1px solid #eee; box-shadow:0 2px 10px rgba(0,0,0,0.02); }
+    .card.completed { background:#f9fdfa; border-color:#d4ecd9; } /* 완료 카드 배경색 약간 다르게 */
+    
     .stat { background:var(--blue); color:#fff; padding:15px; border-radius:12px; text-align:center; }
     .student-email { font-size:12px; color:#5856d6; background:#f0f0ff; padding:3px 8px; border-radius:6px; display:inline-block; margin-top:5px; border: 1px solid #e0e0ff;}
-    .close-btn { display:none; position:absolute; top:15px; right:20px; font-size:40px; cursor:pointer; color:#818181; z-index:9999; padding:10px; line-height:0.8; }
+    
+    .answer-box { margin-top:15px; padding:15px; background:#f0f0f5; border-radius:10px; font-size:14px; color:#333; border-left: 4px solid var(--blue);}
+    
+    .close-btn { display:none; }
+    
+    /* 모바일 반응형 */
+    @media (max-width: 1000px) {
+      .lists-wrapper { flex-direction: column; }
+      .list-column { width: 100%; box-sizing: border-box; }
+    }
     @media (max-width: 768px) {
       #main { margin-left:0; padding:20px; }
       #side { width:100%; transform:translateX(-100%); }
       #side.open { transform:translateX(0); }
-      .mobile-header { display:flex; justify-content:space-between; align-items:center; padding:15px 20px; background:#fff; border-bottom:1px solid #ddd; position:sticky; top:0; z-index:999;}
-      .close-btn { display:block; }
+      .mobile-header { display:flex; justify-content:space-between; padding:15px 20px; background:#fff; border-bottom:1px solid #ddd; position:sticky; top:0; z-index:999;}
+      .close-btn { display:block; position:absolute; top:15px; right:20px; font-size:40px; cursor:pointer; color:#818181; z-index:9999; padding:10px; line-height:0.8; }
     }
   </style>
 </head>
@@ -40,6 +57,7 @@
       <h2 style="font-size:18px; margin:0; color:var(--blue);">대시보드</h2>
       <button onclick="openNav()" style="background:none; border:none; font-size:24px; cursor:pointer;">☰</button>
     </div>
+    
     <div id="side">
       <span class="close-btn" onclick="closeNav()">&times;</span>
       <h2 style="color:var(--blue); margin-top:0;">Dashboard</h2>
@@ -52,17 +70,28 @@
       <canvas id="dayChart" style="margin-top:20px;"></canvas>
       <button onclick="logout()" style="width:100%; padding:10px; background:#ff3b30; color:#fff; border:none; border-radius:10px; margin-top:30px; font-weight:bold; cursor:pointer;">로그아웃</button>
     </div>
+    
     <div id="main">
-      <h1>처리 대기 목록</h1>
-      <div id="list">데이터 로딩 중...</div>
+      <div class="lists-wrapper">
+        <div class="list-column">
+          <h2 style="font-size: 20px; margin-top:0;">⏳ 처리 대기 목록</h2>
+          <div id="pending-list">로딩 중...</div>
+        </div>
+        
+        <div class="list-column" style="background:#f9f9fc;">
+          <h2 style="font-size: 20px; margin-top:0; color:#34c759;">✅ 답변 완료 목록</h2>
+          <div id="completed-list">로딩 중...</div>
+        </div>
+      </div>
     </div>
   </div>
 
   <script>
-    const API = "https://script.google.com/macros/s/AKfycbynF_nqNxYL6iR2pDvM2Fk4tz1d4HGWWNqz6pK94QXtS63dKpt_Rpi9RWAAEcPwRjhQ/exec";
+    // 🔥 수정: GAS 웹 앱 URL 및 선생님 이메일 기입
+    const API = "https://script.google.com/macros/s/AKfycbyBVQaJiNiA5p8aAtHyAmIZwPWXcFO_6_pPGRYIgAXGF-RILj5KM-yuYAJfKvP5PF5K/exec";
     const ALLOWED = ["eisiseu@gmail.com",
             "serendipis@chungnamhs.djsch.kr",
-            "sunj080407@gmail.com"]; // 관리자 이메일 목록
+            "sunj080407@gmail.com" ]; 
 
     window.onload = () => {
       const email = localStorage.getItem("adminEmail");
@@ -93,34 +122,62 @@
       try {
         const res = await fetch(API + "?mode=admin_data");
         const data = await res.json();
+        
         document.getElementById('total').innerText = data.stats.total;
         document.getElementById('done').innerText = data.stats.done;
 
-        // 차트 렌더링
-        new Chart(document.getElementById('dayChart'), { type:'bar', data:{labels:Object.keys(data.dayStats), datasets:[{label:'접수', data:Object.values(data.dayStats), backgroundColor:'#0b3190'}]}, options:{maintainAspectRatio:false} });
-        new Chart(document.getElementById('typeChart'), { type:'doughnut', data:{labels:Object.keys(data.typeStats), datasets:[{data:Object.values(data.typeStats), backgroundColor:['#ff3b30','#ffcc00','#007aff']}]}, options:{maintainAspectRatio:false} });
+        new Chart(document.getElementById('dayChart'), { type:'bar', data:{labels:Object.keys(data.dayStats), datasets:[{label:'접수', data:Object.values(data.dayStats), backgroundColor:'#0b3190'}]} });
+        new Chart(document.getElementById('typeChart'), { type:'doughnut', data:{labels:Object.keys(data.typeStats), datasets:[{data:Object.values(data.typeStats), backgroundColor:['#ff3b30','#ffcc00','#007aff']}]} });
 
-        const listDiv = document.getElementById('list'); 
-        listDiv.innerHTML = "";
-        
-        const pendingList = data.list.filter(row => row[6] !== "완료 ✨");
-        if(pendingList.length === 0) { listDiv.innerHTML = "<p>모든 민원이 처리되었습니다!</p>"; return; }
+        const pendingDiv = document.getElementById('pending-list');
+        const completedDiv = document.getElementById('completed-list');
+        pendingDiv.innerHTML = "";
+        completedDiv.innerHTML = "";
 
-        pendingList.forEach((row) => {
-          const card = document.createElement('div'); 
-          card.className = 'card';
-          card.innerHTML = `
-            <div style="display:flex; justify-content:space-between;">
-              <div><strong>${row[1]} ${row[2]}</strong><br><span class="student-email">${row[3]}</span></div>
-              <span style="color:#0b3190; font-weight:bold;">[${row[4]}]</span>
-            </div>
-            <p>${row[5]}</p>
-            <textarea id="msg-${row.sheetIndex}" placeholder="답변 내용을 입력하세요..." style="width:100%; height:80px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd; padding:10px; box-sizing:border-box; font-family:inherit;"></textarea>
-            <button onclick="completeTask(${row.sheetIndex}, '${row[3]}', '${row[2]}', this)" style="width:100%; padding:12px; background:var(--blue); color:#fff; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">완료 및 이메일 발송</button>
-          `;
-          listDiv.appendChild(card);
+        // 민원 리스트 분리하여 렌더링
+        let pendingCount = 0;
+        let completedCount = 0;
+
+        data.list.forEach((row) => {
+          // row[8]이 true(체크됨)이거나 row[6]이 완료인 경우
+          if(row[8] === true || row[6] === "완료 ✨") {
+            completedCount++;
+            completedDiv.innerHTML += `
+              <div class="card completed">
+                <div style="display:flex; justify-content:space-between;">
+                  <div><strong>${row[1]} ${row[2]}</strong></div>
+                  <span style="color:#34c759; font-weight:bold; font-size:13px;">✔ 완료됨</span>
+                </div>
+                <p style="color:#666; font-size:14px; margin-top:8px;">[문의] ${row[5]}</p>
+                <div class="answer-box">
+                  <strong>선생님 답변:</strong><br>${row[7] || "답변 내용이 없습니다."}
+                </div>
+              </div>
+            `;
+          } 
+          // 처리 대기 중인 경우
+          else {
+            pendingCount++;
+            pendingDiv.innerHTML += `
+              <div class="card">
+                <div style="display:flex; justify-content:space-between;">
+                  <div><strong>${row[1]} ${row[2]}</strong><br><span class="student-email">${row[3]}</span></div>
+                  <span style="color:#0b3190; font-weight:bold;">[${row[4]}]</span>
+                </div>
+                <p>${row[5]}</p>
+                <textarea id="msg-${row.sheetIndex}" placeholder="학생에게 보낼 답변을 입력하세요..." style="width:100%; height:80px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd; padding:10px; box-sizing:border-box; font-family:inherit;"></textarea>
+                <button onclick="completeTask(${row.sheetIndex}, '${row[3]}', '${row[2]}', this)" style="width:100%; padding:12px; background:var(--blue); color:#fff; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">완료 및 이메일 발송</button>
+              </div>
+            `;
+          }
         });
-      } catch(e) { document.getElementById('list').innerHTML = "데이터 로딩 오류"; }
+
+        if(pendingCount === 0) pendingDiv.innerHTML = "<p style='color:#888;'>대기 중인 민원이 없습니다.</p>";
+        if(completedCount === 0) completedDiv.innerHTML = "<p style='color:#888;'>아직 완료된 민원이 없습니다.</p>";
+
+      } catch(e) { 
+        document.getElementById('pending-list').innerHTML = "데이터 로딩 오류"; 
+      }
     }
 
     async function completeTask(index, email, name, btn) {
@@ -128,15 +185,18 @@
       if(!msg) return alert("답변을 입력해주세요.");
       if(!confirm("처리를 완료하시겠습니까?")) return;
 
-      btn.disabled = true; btn.innerText = "처리 중...";
+      btn.disabled = true; btn.innerText = "이메일 발송 중...";
       try {
         await fetch(API, { 
           method: "POST", 
           body: JSON.stringify({ action: "complete", rowIdx: index, message: msg, email: email, name: name }) 
         });
-        alert("처리가 완료되었습니다!");
+        alert("처리가 완료되었습니다! 엑셀 체크박스가 선택되고 이메일이 발송되었습니다.");
         location.reload(); 
-      } catch (e) { alert("오류 발생"); btn.disabled = false; btn.innerText = "완료 및 이메일 발송"; }
+      } catch (e) { 
+        alert("오류 발생"); 
+        btn.disabled = false; btn.innerText = "완료 및 이메일 발송"; 
+      }
     }
   </script>
 </body>
