@@ -8,59 +8,80 @@
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root { --blue: #0b3190; --gray: #f5f5f7; }
-    body { font-family:-apple-system, sans-serif; background: var(--gray); margin:0; }
+    body { font-family:-apple-system, sans-serif; background: var(--gray); margin:0; overflow-x: hidden;}
+    
     #login-container { display:flex; justify-content:center; align-items:center; height:100vh; flex-direction:column; }
     #dashboard-container { display:none; flex-direction:row; }
-    #side { width:300px; background:#fff; height:100vh; padding:25px; border-right:1px solid #ddd; position:fixed; overflow-y:auto; z-index:1000; transition:0.3s; }
-    #main { margin-left:300px; padding:40px; flex:1; }
+    
+    /* 🔥 수정됨: top:0, left:0을 명시하여 공중에 뜨거나 터치를 방해하지 않도록 고정 */
+    #side { top:0; left:0; width:300px; background:#fff; height:100vh; padding:25px; border-right:1px solid #ddd; position:fixed; overflow-y:auto; z-index:1000; transition: transform 0.3s ease; box-sizing: border-box;}
+    #main { margin-left:300px; padding:40px; flex:1; box-sizing: border-box;}
+    
     .card { background:#fff; border-radius:15px; padding:20px; margin-bottom:20px; box-shadow:0 2px 10px rgba(0,0,0,0.05); }
     .stat { background:var(--blue); color:#fff; padding:15px; border-radius:12px; text-align:center; }
-    .student-email { font-size:12px; color:#5856d6; background:#f0f0ff; padding:3px 8px; border-radius:6px; display:inline-block; margin-top:5px; }
+    .student-email { font-size:12px; color:#5856d6; background:#f0f0ff; padding:3px 8px; border-radius:6px; display:inline-block; margin-top:5px; border: 1px solid #e0e0ff;}
+    
+    .close-btn { display: none; }
+
     @media (max-width: 768px) {
       #main { margin-left:0; padding:20px; }
       #side { width:100%; transform:translateX(-100%); }
       #side.open { transform:translateX(0); }
-      .mobile-header { display:flex; justify-content:space-between; padding:15px; background:#fff; border-bottom:1px solid #ddd; }
+      .mobile-header { display:flex; justify-content:space-between; align-items:center; padding:15px 20px; background:#fff; border-bottom:1px solid #ddd; position:sticky; top:0; z-index:999;}
+      
+      /* 🔥 수정됨: 터치 영역을 늘리고(padding), z-index를 최상단으로 올려서 무조건 눌리게 함 */
+      .close-btn { display:block; position:absolute; top:15px; right:20px; font-size:40px; cursor:pointer; color:#818181; text-decoration:none; z-index:9999; padding:10px; line-height:0.8; }
     }
   </style>
 </head>
 <body>
   <div id="login-container">
-    <div style="background:#fff; padding:40px; border-radius:15px; text-align:center; box-shadow:0 4px 15px rgba(0,0,0,0.1);">
+    <div style="background:#fff; padding:40px; border-radius:15px; text-align:center; box-shadow:0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; box-sizing: border-box;">
       <h2 style="color:var(--blue);">관리자 로그인</h2>
-      <div id="g_id_onload" data-client_id="461701933207-l7r5rb5iiuedj2bfabj9v73ceuc3rqm0.apps.googleusercontent.com" data-callback="handleCredentialResponse"></div>
+      <div id="g_id_onload" data-client_id="" data-callback="handleCredentialResponse461701933207-l7r5rb5iiuedj2bfabj9v73ceuc3rqm0.apps.googleusercontent.com"></div>
       <div class="g_id_signin" data-type="standard"></div>
     </div>
   </div>
 
   <div id="dashboard-container">
-    <div class="mobile-header" style="display:none;">
-      <h2 style="font-size:18px; margin:0;">대시보드</h2>
-      <button onclick="openNav()" style="background:none; border:none; font-size:24px;">☰</button>
+    <div class="mobile-header">
+      <h2 style="font-size:18px; margin:0; color:var(--blue);">대시보드</h2>
+      <button onclick="openNav()" style="background:none; border:none; font-size:24px; cursor:pointer; padding:5px;">☰</button>
     </div>
     <div id="side">
-      <button onclick="closeNav()" style="float:right; font-size:30px; border:none; background:none;">&times;</button>
-      <h2 style="color:var(--blue);">Dashboard</h2>
-      <p id="admin-info" style="color:#34c759; font-weight:bold;"></p>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-        <div class="stat"><small>전체</small><br><b id="total">0</b></div>
-        <div class="stat" style="background:#34c759;"><small>완료</small><br><b id="done">0</b></div>
+      <span class="close-btn" onclick="closeNav()">&times;</span>
+      
+      <h2 style="color:var(--blue); margin-top:0;">Dashboard</h2>
+      <p id="admin-info" style="color:#34c759; font-weight:bold; font-size:13px;"></p>
+      
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;">
+        <div class="stat"><small>전체</small><br><b id="total" style="font-size:20px;">0</b></div>
+        <div class="stat" style="background:#34c759;"><small>완료</small><br><b id="done" style="font-size:20px;">0</b></div>
       </div>
-      <h3>유형 비율</h3><canvas id="typeChart"></canvas>
-      <h3>요일 현황</h3><canvas id="dayChart"></canvas>
-      <button onclick="logout()" style="width:100%; padding:10px; background:#ff3b30; color:#fff; border:none; border-radius:10px; margin-top:20px;">로그아웃</button>
+      
+      <h3 style="font-size:14px; color:#86868b;">유형 비율</h3>
+      <div style="height:200px;"><canvas id="typeChart"></canvas></div>
+      
+      <h3 style="font-size:14px; color:#86868b; margin-top:25px;">요일 현황</h3>
+      <div style="height:200px;"><canvas id="dayChart"></canvas></div>
+      
+      <button onclick="logout()" style="width:100%; padding:10px; background:#ff3b30; color:#fff; border:none; border-radius:10px; margin-top:30px; font-weight:bold; cursor:pointer;">로그아웃</button>
     </div>
+    
     <div id="main">
-      <h1>대기 목록</h1>
+      <h1 style="font-size: 22px;">대기 목록</h1>
       <div id="list">데이터 로딩 중...</div>
     </div>
   </div>
 
   <script>
+    // 🔥 [필수] 구글 앱스 스크립트 웹 앱 URL로 변경
     const API = "https://script.google.com/macros/s/AKfycbzEMnSdgPcTzeslJsG7MaC8kQatw9trJE_9WNBQ9i9sEu4GQTQzK-XAw19B8slBqM-1/exec";
-    const ALLOWED = ["eisiseu@gmail.com",
+    // 🔥 [필수] 접속을 허용할 선생님 이메일 목록 작성
+    const ALLOWED = [
+"eisiseu@gmail.com",
             "serendipis@chungnamhs.djsch.kr",
-            "sunj080407@gmail.com"]; // 선생님 이메일 목록
+            "sunj080407@gmail.com" ]; 
 
     window.onload = () => {
       const email = localStorage.getItem("adminEmail");
@@ -73,7 +94,7 @@
         localStorage.setItem("adminEmail", p.email);
         localStorage.setItem("adminName", p.name);
         showDashboard(p.name);
-      } else alert("권한 없음");
+      } else alert("권한이 없습니다. 등록된 관리자 계정으로 로그인해주세요.");
     }
 
     function showDashboard(name) {
@@ -88,29 +109,73 @@
     function closeNav() { document.getElementById("side").classList.remove("open"); }
 
     async function load() {
-      const res = await fetch(API + "?mode=admin_data");
-      const data = await res.json();
-      document.getElementById('total').innerText = data.stats.total;
-      document.getElementById('done').innerText = data.stats.done;
+      try {
+        const res = await fetch(API + "?mode=admin_data");
+        const data = await res.json();
+        document.getElementById('total').innerText = data.stats.total;
+        document.getElementById('done').innerText = data.stats.done;
 
-      new Chart(document.getElementById('dayChart'), { type:'bar', data:{labels:Object.keys(data.dayStats), datasets:[{data:Object.values(data.dayStats), backgroundColor:'#0b3190'}]} });
-      new Chart(document.getElementById('typeChart'), { type:'doughnut', data:{labels:Object.keys(data.typeStats), datasets:[{data:Object.values(data.typeStats), backgroundColor:['#ff3b30','#ffcc00','#007aff']}]} });
+        new Chart(document.getElementById('dayChart'), { type:'bar', data:{labels:Object.keys(data.dayStats), datasets:[{label:'접수건수', data:Object.values(data.dayStats), backgroundColor:'#0b3190'}]}, options:{maintainAspectRatio:false} });
+        new Chart(document.getElementById('typeChart'), { type:'doughnut', data:{labels:Object.keys(data.typeStats), datasets:[{data:Object.values(data.typeStats), backgroundColor:['#ff3b30','#ffcc00','#007aff']}]}, options:{maintainAspectRatio:false} });
 
-      const listDiv = document.getElementById('list'); listDiv.innerHTML = "";
-      data.list.forEach((row, idx) => {
-        if(row[6] === "완료 ✨") return; // G열 기준 완료 체크
-        const card = document.createElement('div'); card.className = 'card';
-        card.innerHTML = `
-          <div style="display:flex; justify-content:space-between;">
-            <div><strong>${row[1]} ${row[2]}</strong><br><span class="student-email">${row[3]}</span></div>
-            <span style="color:#0b3190; font-weight:bold;">[${row[4]}]</span>
-          </div>
-          <p>${row[5]}</p>
-          <textarea id="m${idx}" placeholder="답변 입력..."></textarea>
-          <button onclick="done(${idx},'${row[3]}','${row[2]}', this)" style="width:100%; padding:10px; background:var(--blue); color:#fff; border:none; border-radius:10px;">완료 및 이메일 발송</button>
-        `;
-        listDiv.appendChild(card);
-      });
+        const listDiv = document.getElementById('list'); 
+        listDiv.innerHTML = "";
+        
+        if(data.list.length === 0) { listDiv.innerHTML = "<p>대기 중인 민원이 없습니다.</p>"; return; }
+
+        data.list.forEach((row, idx) => {
+          if(row[6] === "완료 ✨") return; 
+          const card = document.createElement('div'); card.className = 'card';
+          
+          // 🔥 수정됨: onclick 안에 직접 데이터를 넣지 않고, data-* 속성으로 안전하게 데이터를 숨겨둡니다.
+          card.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <strong style="font-size:18px;">${row[1]} ${row[2]}</strong><br>
+                <span class="student-email">${row[3] || "이메일 정보 없음"}</span>
+              </div>
+              <span style="color:#0b3190; font-size:13px; font-weight:bold;">[${row[4]}]</span>
+            </div>
+            <p style="margin:15px 0; color:#333; line-height:1.5;">${row[5]}</p>
+            <textarea id="m${idx}" placeholder="답변 입력..." style="width:100%; height:80px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd; padding:10px; box-sizing:border-box; font-family:inherit;"></textarea>
+            
+            <button class="btn" 
+                    data-idx="${idx}" 
+                    data-email="${row[3] || ''}" 
+                    data-name="${row[2] || ''}" 
+                    onclick="processDone(this)" 
+                    style="width:100%; padding:12px; background:var(--blue); color:#fff; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">
+              완료 및 이메일 발송
+            </button>
+          `;
+          listDiv.appendChild(card);
+        });
+      } catch(e) {
+          document.getElementById('list').innerHTML = "<p style='color:red;'>데이터 로딩 중 오류가 발생했습니다.</p>";
+      }
+    }
+
+    // 🔥 수정됨: 버튼 자체(this)를 전달받아, 안전하게 데이터를 꺼내서 처리합니다.
+    async function processDone(btn) {
+      const idx = btn.getAttribute('data-idx');
+      const email = btn.getAttribute('data-email');
+      const name = btn.getAttribute('data-name');
+      const msg = document.getElementById('m'+idx).value;
+
+      if(!msg) { alert("답변 내용을 입력해주세요."); return; }
+      
+      btn.disabled = true; 
+      btn.innerText = "처리 중...";
+      
+      try {
+        await fetch(API, { method:"POST", body:JSON.stringify({action:"complete", rowIdx:idx, message:msg, email:email, name:name}) });
+        alert("처리가 완료되었습니다!"); 
+        location.reload(); 
+      } catch (error) {
+        alert("처리 중 오류가 발생했습니다.");
+        btn.disabled = false; 
+        btn.innerText = "완료 및 이메일 발송";
+      }
     }
   </script>
 </body>
