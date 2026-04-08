@@ -13,9 +13,9 @@
     label { font-size:14px; font-weight:600; color:#86868b; display:block; margin-top:15px; margin-bottom:5px; }
     input, select, textarea { width:100%; padding:14px; border-radius:12px; border:1px solid #d2d2d7; box-sizing:border-box; background:#f9f9f9; font-size:16px; outline:none; }
     
-    /* 🔥 새로 추가된 학번 그룹 스타일 */
+    /* 🔥 학번 선택 그룹 스타일 */
     .sid-group { display: flex; gap: 10px; }
-    .sid-group input { text-align: center; padding: 14px 10px; }
+    .sid-group select { flex: 1; text-align: center; text-align-last: center; appearance: none; padding-right: 0; }
     
     .submit { width:100%; padding:18px; border-radius:16px; border:none; background:var(--blue); color:#fff; font-weight:bold; font-size:17px; cursor:pointer; margin-top:25px; }
   </style>
@@ -35,9 +35,18 @@
       
       <label>학번</label>
       <div class="sid-group">
-        <input type="number" id="grade" placeholder="학년" min="1" max="3">
-        <input type="number" id="cls" placeholder="반" min="1" max="12">
-        <input type="number" id="num" placeholder="번호" min="1" max="30">
+        <select id="grade">
+          <option value="" disabled selected>학년</option>
+          <option value="1">1학년</option>
+          <option value="2">2학년</option>
+          <option value="3">3학년</option>
+        </select>
+        <select id="cls">
+          <option value="" disabled selected>반</option>
+          </select>
+        <select id="num">
+          <option value="" disabled selected>번호</option>
+          </select>
       </div>
       
       <label>이름</label><input type="text" id="name" placeholder="성명">
@@ -53,6 +62,19 @@
     const API = "https://script.google.com/macros/s/AKfycbx0ZnLcD3JcvoAYPwhF5QfzCSQnSQb9Czb5XKs_JXtJugeuAZQT9BEf_DOVp2pctq3M/exec";
     let userEmail = "";
 
+    // 🔥 반(1~12)과 번호(1~30) 목록을 자동으로 채워주는 코드
+    window.addEventListener('DOMContentLoaded', () => {
+      const clsSelect = document.getElementById('cls');
+      for(let i = 1; i <= 12; i++) {
+        clsSelect.innerHTML += `<option value="${i}">${i}반</option>`;
+      }
+      
+      const numSelect = document.getElementById('num');
+      for(let i = 1; i <= 30; i++) {
+        numSelect.innerHTML += `<option value="${i}">${i}번</option>`;
+      }
+    });
+
     function handleCredentialResponse(r) {
       const p = JSON.parse(atob(r.credential.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
       userEmail = p.email;
@@ -62,7 +84,7 @@
     }
 
     async function send() {
-      // 입력값 가져오기
+      // 선택값 가져오기
       const g = document.getElementById('grade').value;
       const c = document.getElementById('cls').value;
       const n = document.getElementById('num').value;
@@ -70,12 +92,11 @@
       const type = document.getElementById('type').value;
       const detail = document.getElementById('detail').value;
 
-      // 빈칸 확인
-      if(!g || !c || !n) return alert("학년, 반, 번호를 모두 입력해주세요.");
+      // 선택 여부 확인
+      if(!g || !c || !n) return alert("학년, 반, 번호를 모두 선택해주세요.");
       if(!name || !detail) return alert("이름과 상세 내용을 입력해주세요.");
 
-      // 🔥 5자리 학번 자동 생성 (예: 2학년 1반 5번 -> 20105)
-      // padStart를 이용해 반과 번호가 한 자리수일 때 앞에 '0'을 붙여줍니다.
+      // 5자리 학번 자동 생성 (예: 2학년 1반 5번 -> 20105)
       const formattedSid = g + String(c).padStart(2, '0') + String(n).padStart(2, '0');
 
       const btn = document.getElementById('s-btn');
@@ -86,7 +107,7 @@
         await fetch(API, { 
           method: "POST", 
           body: JSON.stringify({
-            studentId: formattedSid, // 엑셀과 관리자 화면에는 기존처럼 5자리로 예쁘게 들어갑니다.
+            studentId: formattedSid, 
             name: name,
             authEmail: userEmail,
             type: type,
