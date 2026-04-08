@@ -2,36 +2,27 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>충남고 보안부 대시보드</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root { --blue: #0b3190; --gray: #f5f5f7; }
     body { font-family:-apple-system, sans-serif; background: var(--gray); margin:0; display: flex; }
-    
-    /* 사이드바 디자인 */
     #side { width:300px; background:#fff; height:100vh; padding:25px; border-right:1px solid #ddd; position:fixed; box-sizing: border-box; }
     #main { margin-left:300px; padding:40px; flex:1; box-sizing: border-box; }
-    
-    .stat-card { background:var(--blue); color:#fff; padding:15px; border-radius:12px; text-align:center; margin-bottom:10px; }
+    .stat-card { background:var(--blue); color:#fff; padding:15px; border-radius:12px; text-align:center; margin-bottom:15px; }
     .lists-wrapper { display: flex; gap: 30px; }
-    .list-column { flex: 1; min-height: 500px; }
-    
+    .list-column { flex: 1; }
     .card { background:#fff; border-radius:15px; padding:20px; margin-bottom:20px; box-shadow:0 4px 15px rgba(0,0,0,0.03); border:1px solid #eee; }
     .card.done { border-left: 5px solid #34c759; background: #f9fdfa; }
-    
-    textarea { width:100%; height:80px; margin:10px 0; border-radius:10px; border:1px solid #ddd; padding:10px; box-sizing: border-box; font-family: inherit; }
+    textarea { width:100%; height:80px; margin:10px 0; border-radius:10px; border:1px solid #ddd; padding:10px; box-sizing: border-box; }
     button { width:100%; padding:12px; background:var(--blue); color:#fff; border:none; border-radius:10px; font-weight:bold; cursor:pointer; }
-    
     #login-screen { position:fixed; top:0; left:0; width:100%; height:100%; background:#fff; display:flex; justify-content:center; align-items:center; z-index:9999; flex-direction:column; }
   </style>
 </head>
 <body>
-
   <div id="login-screen">
     <h2 style="color:var(--blue);">관리자 인증</h2>
-    <div id="g_id_onload" data-client_id="461701933207-l7r5rb5iiuedj2bfabj9v73ceuc3rqm0.apps.googleusercontent.com" data-callback="handleLogin"></div>
+    <div id="g_id_onload" data-client_id="461701933207-l7r5rb5iiuedj2bfabj9v73ceuc3rqm0.apps.googleusercontent.com" data-callback="handleLogin" data-auto_prompt="false"></div>
     <div class="g_id_signin" data-type="standard"></div>
   </div>
 
@@ -40,25 +31,18 @@
     <div id="admin-name" style="margin-bottom:20px; font-weight:bold; color:#34c759;"></div>
     <div class="stat-card"><small>전체 민원</small><br><b id="st-total" style="font-size:24px;">0</b></div>
     <div class="stat-card" style="background:#34c759;"><small>해결 완료</small><br><b id="st-done" style="font-size:24px;">0</b></div>
-    <canvas id="typeChart" style="margin-top:20px;"></canvas>
     <button onclick="localStorage.clear(); location.reload();" style="background:#ff3b30; margin-top:30px;">로그아웃</button>
   </div>
 
   <div id="main">
     <div class="lists-wrapper">
-      <div class="list-column">
-        <h3 style="color:#555;">⏳ 처리 대기</h3>
-        <div id="pending-list"></div>
-      </div>
-      <div class="list-column">
-        <h3 style="color:#34c759;">✅ 해결 완료</h3>
-        <div id="completed-list"></div>
-      </div>
+      <div class="list-column"><h3>⏳ 처리 대기</h3><div id="pending-list"></div></div>
+      <div class="list-column"><h3>✅ 해결 완료</h3><div id="completed-list"></div></div>
     </div>
   </div>
 
   <script>
-    const API = "https://script.google.com/macros/s/AKfycbynpT6WzPo6WVFbLruCTTC8lJg78lAPqntraVl0_1t7pHs7j6Lx6sGT9DsgSQEAk91V/exec";
+    const API = "https://script.google.com/macros/s/AKfycbylZHjE_K6ehW0bDkqrsx1kc3q-CqNjgxt3e-dqSV1_ylxQCOzBs9QcVgqNL9zzuj87/exec";
     const ADMINS = ["eisiseu@gmail.com", "serendipis@chungnamhs.djsch.kr", "sunj080407@gmail.com"];
 
     function handleLogin(r) {
@@ -84,48 +68,27 @@
     async function loadData() {
       const res = await fetch(API + "?mode=admin");
       const data = await res.json();
-      
       document.getElementById('st-total').innerText = data.stats.total;
       document.getElementById('st-done').innerText = data.stats.done;
-
-      const pList = document.getElementById('pending-list');
-      const cList = document.getElementById('completed-list');
+      const pList = document.getElementById('pending-list'), cList = document.getElementById('completed-list');
       pList.innerHTML = ""; cList.innerHTML = "";
 
       data.list.forEach(row => {
         const isDone = (row[8] === true || String(row[8]).toUpperCase() === "TRUE");
         if(isDone) {
-          cList.innerHTML += `
-            <div class="card done">
-              <strong>${row[1]} ${row[2]}</strong>
-              <p style="font-size:14px; color:#666;">${row[5]}</p>
-              <div style="background:#eee; padding:10px; border-radius:8px; font-size:13px;"><b>답변:</b> ${row[7]}</div>
-            </div>`;
+          cList.innerHTML += `<div class="card done"><strong>${row[2]}</strong><p>${row[5]}</p><div style="background:#eee; padding:10px; border-radius:8px; font-size:13px;"><b>답변:</b> ${row[7]}</div></div>`;
         } else {
-          pList.innerHTML += `
-            <div class="card">
-              <strong>${row[1]} ${row[2]}</strong> <span style="font-size:12px; color:var(--blue);">[${row[4]}]</span>
-              <p style="font-size:14px;">${row[5]}</p>
-              <textarea id="msg-${row.sheetIndex}" placeholder="학생에게 보낼 답변 입력..."></textarea>
-              <button onclick="completeTask(${row.sheetIndex}, '${row[3]}', '${row[2]}', this)">완료 및 메일 전송</button>
-            </div>`;
+          pList.innerHTML += `<div class="card"><strong>${row[2]}</strong><p>${row[5]}</p><textarea id="msg-${row.sheetIndex}" placeholder="답변 입력..."></textarea><button onclick="completeTask(${row.sheetIndex}, '${row[3]}', '${row[2]}', this)">완료 및 전송</button></div>`;
         }
       });
-      // 차트 코드는 생략 (필요시 추가 가능)
     }
 
     async function completeTask(idx, email, name, btn) {
       const msg = document.getElementById(`msg-${idx}`).value;
       if(!msg) return alert("답변을 입력해주세요.");
       btn.disabled = true; btn.innerText = "처리 중...";
-      
-      await fetch(API, { 
-        method: "POST", 
-        body: JSON.stringify({ action: "complete", rowIdx: idx, message: msg, email: email, name: name })
-      });
-      
-      alert("성공적으로 처리되었습니다!");
-      loadData();
+      await fetch(API, { method: "POST", body: JSON.stringify({ action: "complete", rowIdx: idx, message: msg, email: email, name: name })});
+      alert("성공적으로 처리되었습니다!"); loadData();
     }
   </script>
 </body>
