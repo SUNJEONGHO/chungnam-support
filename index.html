@@ -12,30 +12,47 @@
     .user-badge { background: #eef2ff; color: var(--blue); padding: 12px; border-radius: 12px; font-size: 13px; font-weight: bold; margin-bottom: 20px; text-align: center; border: 1px solid #d0d7f7; }
     label { font-size:14px; font-weight:600; color:#86868b; display:block; margin-top:15px; margin-bottom:5px; }
     input, select, textarea { width:100%; padding:14px; border-radius:12px; border:1px solid #d2d2d7; box-sizing:border-box; background:#f9f9f9; font-size:16px; outline:none; }
+    
+    /* 🔥 새로 추가된 학번 그룹 스타일 */
+    .sid-group { display: flex; gap: 10px; }
+    .sid-group input { text-align: center; padding: 14px 10px; }
+    
     .submit { width:100%; padding:18px; border-radius:16px; border:none; background:var(--blue); color:#fff; font-weight:bold; font-size:17px; cursor:pointer; margin-top:25px; }
   </style>
 </head>
 <body>
   <div class="card">
     <h2 style="color:var(--blue); text-align:center; margin-top:0;">정보부 민원 접수</h2>
+    
     <div id="login-section" style="text-align:center;">
       <p style="color:#666; font-size:14px; margin-bottom:20px;">학생 인증을 위해 구글 로그인이 필요합니다.</p>
       <div id="g_id_onload" data-client_id="461701933207-l7r5rb5iiuedj2bfabj9v73ceuc3rqm0.apps.googleusercontent.com" data-callback="handleCredentialResponse" data-auto_prompt="false"></div>
       <div class="g_id_signin" data-type="standard"></div>
     </div>
+
     <div id="form-section">
       <div id="user-info" class="user-badge"></div>
-      <label>학번</label><input type="text" id="sid" placeholder="예: 20101">
+      
+      <label>학번</label>
+      <div class="sid-group">
+        <input type="number" id="grade" placeholder="학년" min="1" max="3">
+        <input type="number" id="cls" placeholder="반" min="1" max="12">
+        <input type="number" id="num" placeholder="번호" min="1" max="30">
+      </div>
+      
       <label>이름</label><input type="text" id="name" placeholder="성명">
       <label>문의 유형</label>
       <select id="type"><option>비밀번호 초기화</option><option>기기 문의</option><option>기타</option></select>
       <label>상세 내용</label><textarea id="detail" rows="4" placeholder="내용을 입력해주세요."></textarea>
+      
       <button class="submit" id="s-btn" onclick="send()">접수하기</button>
     </div>
   </div>
+
   <script>
-    const API = "https://script.google.com/macros/s/AKfycbxQlyfpR_cXGcC9RQVZebIlwFKPXsb-JUoTGiH1-P9UbzfQv5JMbRqEgguTlCyV58Y4/exec";
+    const API = "https://script.google.com/macros/s/AKfycbx0ZnLcD3JcvoAYPwhF5QfzCSQnSQb9Czb5XKs_JXtJugeuAZQT9BEf_DOVp2pctq3M/exec";
     let userEmail = "";
+
     function handleCredentialResponse(r) {
       const p = JSON.parse(atob(r.credential.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
       userEmail = p.email;
@@ -43,19 +60,46 @@
       document.getElementById('form-section').style.display = 'block';
       document.getElementById('user-info').innerText = `인증됨: ${userEmail}`;
     }
+
     async function send() {
+      // 입력값 가져오기
+      const g = document.getElementById('grade').value;
+      const c = document.getElementById('cls').value;
+      const n = document.getElementById('num').value;
+      const name = document.getElementById('name').value;
+      const type = document.getElementById('type').value;
+      const detail = document.getElementById('detail').value;
+
+      // 빈칸 확인
+      if(!g || !c || !n) return alert("학년, 반, 번호를 모두 입력해주세요.");
+      if(!name || !detail) return alert("이름과 상세 내용을 입력해주세요.");
+
+      // 🔥 5자리 학번 자동 생성 (예: 2학년 1반 5번 -> 20105)
+      // padStart를 이용해 반과 번호가 한 자리수일 때 앞에 '0'을 붙여줍니다.
+      const formattedSid = g + String(c).padStart(2, '0') + String(n).padStart(2, '0');
+
       const btn = document.getElementById('s-btn');
-      btn.disabled = true; btn.innerText = "접수 중...";
+      btn.disabled = true; 
+      btn.innerText = "접수 중...";
+
       try {
-        await fetch(API, { method: "POST", body: JSON.stringify({
-          studentId: document.getElementById('sid').value,
-          name: document.getElementById('name').value,
-          authEmail: userEmail,
-          type: document.getElementById('type').value,
-          detail: document.getElementById('detail').value
-        })});
-        alert("접수 완료!"); location.reload();
-      } catch(e) { alert("오류 발생"); btn.disabled = false; }
+        await fetch(API, { 
+          method: "POST", 
+          body: JSON.stringify({
+            studentId: formattedSid, // 엑셀과 관리자 화면에는 기존처럼 5자리로 예쁘게 들어갑니다.
+            name: name,
+            authEmail: userEmail,
+            type: type,
+            detail: detail
+          })
+        });
+        alert("접수 완료!"); 
+        location.reload();
+      } catch(e) { 
+        alert("오류 발생"); 
+        btn.disabled = false; 
+        btn.innerText = "접수하기"; 
+      }
     }
   </script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
