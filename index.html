@@ -3,99 +3,59 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>보안부 관리 대시보드</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <title>충남고 민원접수</title>
   <style>
     :root { --blue: #0b3190; --gray: #f5f5f7; }
-    body { font-family:-apple-system, sans-serif; background: var(--gray); margin:0; }
-    #login-container { display:flex; justify-content:center; align-items:center; height:100vh; flex-direction:column; }
-    #dashboard-container { display:none; }
-    #side { width:300px; background:#fff; height:100vh; padding:25px; border-right:1px solid #ddd; position:fixed; box-sizing:border-box; }
-    #main { margin-left:300px; padding:40px; }
-    .lists-wrapper { display: flex; gap: 20px; }
-    .list-column { flex: 1; background: #fff; padding: 20px; border-radius: 15px; min-height: 500px; }
-    .card { border:1px solid #eee; padding:15px; border-radius:12px; margin-bottom:15px; box-shadow:0 2px 5px rgba(0,0,0,0.02); }
-    .card.completed { background:#f9fdfa; border-left: 5px solid #34c759; }
-    .stat { background:var(--blue); color:#fff; padding:15px; border-radius:10px; text-align:center; margin-bottom:10px; }
-    textarea { width:100%; height:60px; margin:10px 0; border-radius:8px; border:1px solid #ddd; padding:8px; box-sizing:border-box; }
-    button { width:100%; padding:10px; border-radius:8px; border:none; background:var(--blue); color:#fff; font-weight:bold; cursor:pointer; }
-    @media (max-width: 1000px) { .lists-wrapper { flex-direction: column; } #side { width:100%; height:auto; position:static; } #main { margin-left:0; } }
+    body { font-family: -apple-system, sans-serif; background: var(--gray); display:flex; justify-content:center; padding:20px; margin:0; }
+    .card { background:#fff; padding:30px; border-radius:24px; width:100%; max-width:440px; box-shadow:0 8px 30px rgba(0,0,0,0.08); box-sizing:border-box; }
+    #form-section { display: none; }
+    .user-badge { background: #eef2ff; color: var(--blue); padding: 12px; border-radius: 12px; font-size: 13px; font-weight: bold; margin-bottom: 20px; text-align: center; border: 1px solid #d0d7f7; }
+    label { font-size:14px; font-weight:600; color:#86868b; display:block; margin-top:15px; margin-bottom:5px; }
+    input, select, textarea { width:100%; padding:14px; border-radius:12px; border:1px solid #d2d2d7; box-sizing:border-box; background:#f9f9f9; font-size:16px; outline:none; }
+    .submit { width:100%; padding:18px; border-radius:16px; border:none; background:var(--blue); color:#fff; font-weight:bold; font-size:17px; cursor:pointer; margin-top:25px; }
   </style>
 </head>
 <body>
-  <div id="login-container">
-    <h2 style="color:var(--blue);">관리자 로그인</h2>
-    <div id="g_id_onload" data-client_id="461701933207-l7r5rb5iiuedj2bfabj9v73ceuc3rqm0.apps.googleusercontent.com" data-callback="handleCredentialResponse"></div>
-    <div class="g_id_signin" data-type="standard"></div>
-  </div>
-
-  <div id="dashboard-container">
-    <div id="side">
-      <h2 style="color:var(--blue);">Dashboard</h2>
-      <div id="admin-info" style="margin-bottom:20px; font-weight:bold; color:#34c759;"></div>
-      <div class="stat"><small>전체 접수</small><br><b id="total" style="font-size:20px;">0</b></div>
-      <div class="stat" style="background:#34c759;"><small>해결 완료</small><br><b id="done" style="font-size:20px;">0</b></div>
-      <canvas id="typeChart"></canvas>
-      <button onclick="localStorage.clear(); location.reload();" style="background:#ff3b30; margin-top:20px;">로그아웃</button>
+  <div class="card">
+    <h2 style="color:var(--blue); text-align:center; margin-top:0;">정보부 민원 접수</h2>
+    <div id="login-section" style="text-align:center;">
+      <p style="color:#666; font-size:14px; margin-bottom:20px;">학생 인증을 위해 구글 로그인이 필요합니다.</p>
+      <div id="g_id_onload" data-client_id="461701933207-l7r5rb5iiuedj2bfabj9v73ceuc3rqm0.apps.googleusercontent.com" data-callback="handleCredentialResponse"></div>
+      <div class="g_id_signin" data-type="standard"></div>
     </div>
-    <div id="main">
-      <div class="lists-wrapper">
-        <div class="list-column"><h3>⏳ 처리 대기</h3><div id="pending-list">데이터 로딩 중...</div></div>
-        <div class="list-column"><h3>✅ 답변 완료</h3><div id="completed-list">데이터 로딩 중...</div></div>
-      </div>
+    <div id="form-section">
+      <div id="user-info" class="user-badge"></div>
+      <label>학번</label><input type="text" id="sid" placeholder="예: 20101">
+      <label>이름</label><input type="text" id="name" placeholder="성명">
+      <label>문의 유형</label>
+      <select id="type"><option>비밀번호 초기화</option><option>기기 문의</option><option>기타</option></select>
+      <label>상세 내용</label><textarea id="detail" rows="4" placeholder="내용을 입력해주세요."></textarea>
+      <button class="submit" id="s-btn" onclick="send()">접수하기</button>
     </div>
   </div>
-
   <script>
     const API = "https://script.google.com/macros/s/AKfycbzC2lJ76ZV_TyaY6ovQNpcKAQnmAmP2bMd8vMoB9Gio0_3ckJkDNsGcsgaKEwi2oBZ7/exec";
-    const ALLOWED = ["eisiseu@gmail.com", "serendipis@chungnamhs.djsch.kr", "sunj080407@gmail.com"];
-
-    window.onload = () => { if(ALLOWED.includes(localStorage.getItem("adminEmail"))) showDashboard(localStorage.getItem("adminName")); }
-
+    let userEmail = "";
     function handleCredentialResponse(r) {
       const p = JSON.parse(atob(r.credential.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
-      if(ALLOWED.includes(p.email)) {
-        localStorage.setItem("adminEmail", p.email);
-        localStorage.setItem("adminName", p.name);
-        showDashboard(p.name);
-      } else { alert("권한이 없습니다."); }
+      userEmail = p.email;
+      document.getElementById('login-section').style.display = 'none';
+      document.getElementById('form-section').style.display = 'block';
+      document.getElementById('user-info').innerText = `인증됨: ${userEmail}`;
     }
-
-    function showDashboard(name) {
-      document.getElementById('login-container').style.display='none';
-      document.getElementById('dashboard-container').style.display='block';
-      document.getElementById('admin-info').innerText = `✔️ ${name} 선생님`;
-      load();
-    }
-
-    async function load() {
-      const res = await fetch(API + "?mode=admin_data");
-      const data = await res.json();
-      document.getElementById('total').innerText = data.stats.total;
-      document.getElementById('done').innerText = data.stats.done;
-
-      const pList = document.getElementById('pending-list'), cList = document.getElementById('completed-list');
-      pList.innerHTML = ""; cList.innerHTML = "";
-
-      data.list.forEach(row => {
-        const isDone = (row[8] === true || row[8] === "TRUE");
-        if(isDone) {
-          cList.innerHTML += `<div class="card completed"><strong>${row[1]} ${row[2]}</strong><p>${row[5]}</p><div style="font-size:13px; color:#666; background:#eee; padding:10px; border-radius:8px;"><b>답변:</b> ${row[7]}</div></div>`;
-        } else {
-          pList.innerHTML += `<div class="card"><strong>${row[1]} ${row[2]}</strong><p>${row[5]}</p><textarea id="msg-${row.sheetIndex}" placeholder="학생에게 보낼 답변 입력..."></textarea><button onclick="completeTask(${row.sheetIndex}, '${row[3]}', '${row[2]}', this)">완료 및 메일 발송</button></div>`;
-        }
-      });
-    }
-
-    async function completeTask(idx, email, name, btn) {
-      const msg = document.getElementById(`msg-${idx}`).value;
-      if(!msg) return alert("답변을 입력해주세요.");
-      if(!confirm("처리를 완료하고 메일을 발송할까요?")) return;
-      btn.disabled = true; btn.innerText = "처리 중...";
-      await fetch(API, { method: "POST", body: JSON.stringify({ action: "complete", rowIdx: idx, message: msg, email: email, name: name })});
-      alert("성공적으로 처리되었습니다!"); location.reload();
+    async function send() {
+      const btn = document.getElementById('s-btn');
+      btn.disabled = true; btn.innerText = "접수 중...";
+      await fetch(API, { method: "POST", body: JSON.stringify({
+        studentId: document.getElementById('sid').value,
+        name: document.getElementById('name').value,
+        authEmail: userEmail,
+        type: document.getElementById('type').value,
+        detail: document.getElementById('detail').value
+      })});
+      alert("접수 완료!"); location.reload();
     }
   </script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </body>
 </html>
