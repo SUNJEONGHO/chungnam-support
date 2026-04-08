@@ -3,213 +3,97 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>충남고 보안부 관리 대시보드</title>
-  
+  <title>보안부 관리 대시보드</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  
   <style>
     :root { --blue: #0b3190; --gray: #f5f5f7; }
-    body { font-family:-apple-system, sans-serif; background: var(--gray); margin:0; overflow-x: hidden;}
-    
-    #login-container { display:flex; justify-content:center; align-items:center; height:100vh; flex-direction:column; padding: 20px; box-sizing: border-box;}
-    .login-box { background:#fff; padding:40px; border-radius:15px; box-shadow:0 4px 15px rgba(0,0,0,0.1); text-align:center; width: 100%; max-width: 400px; }
-    
-    #dashboard-container { display:none; flex-direction:row; width:100%; }
-    
-    #side { top:0; left:0; width:300px; background:#fff; height:100vh; padding:25px; border-right:1px solid #ddd; position:fixed; overflow-y:auto; z-index:1000; transition: transform 0.3s ease; box-sizing: border-box;}
-    #main { margin-left:300px; padding:40px; flex:1; box-sizing: border-box;}
-    
-    .lists-wrapper { display: flex; gap: 30px; align-items: flex-start; }
-    .list-column { flex: 1; background: #fff; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); min-height: 600px; }
-    
-    .card { background:#fff; border-radius:12px; padding:20px; margin-bottom:20px; border: 1px solid #eee; box-shadow:0 2px 10px rgba(0,0,0,0.02); }
-    .card.completed { background:#f9fdfa; border-color:#d4ecd9; }
-    
-    .stat-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-    .stat { background:var(--blue); color:#fff; padding:15px; border-radius:12px; text-align:center; }
-    .student-email { font-size:12px; color:#5856d6; background:#f0f0ff; padding:3px 8px; border-radius:6px; display:inline-block; margin-top:5px; border: 1px solid #e0e0ff;}
-    
-    .answer-box { margin-top:15px; padding:15px; background:#f0f0f5; border-radius:10px; font-size:14px; color:#333; border-left: 4px solid var(--blue); word-break: break-all;}
-    
-    textarea { width:100%; height:80px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd; padding:10px; box-sizing:border-box; font-family:inherit; resize: none;}
-    button.complete-btn { width:100%; padding:12px; background:var(--blue); color:#fff; border:none; border-radius:10px; font-weight:bold; cursor:pointer; }
-    button.complete-btn:disabled { background: #ccc; cursor: not-allowed; }
-
-    .close-btn { display: none; }
-
-    @media (max-width: 1100px) { .lists-wrapper { flex-direction: column; } .list-column { width: 100%; } }
-    @media (max-width: 768px) {
-      #main { margin-left:0; padding:20px; }
-      #side { width:100%; transform:translateX(-100%); border-right: none;}
-      #side.open { transform:translateX(0); }
-      .mobile-header { display:flex; justify-content:space-between; align-items:center; padding:15px 20px; background:#fff; border-bottom:1px solid #ddd; position:sticky; top:0; z-index:999;}
-      .close-btn { display:block; position:absolute; top:15px; right:20px; font-size:40px; cursor:pointer; color:#818181; }
-    }
+    body { font-family:-apple-system, sans-serif; background: var(--gray); margin:0; }
+    #login-container { display:flex; justify-content:center; align-items:center; height:100vh; flex-direction:column; }
+    #dashboard-container { display:none; }
+    #side { width:300px; background:#fff; height:100vh; padding:25px; border-right:1px solid #ddd; position:fixed; box-sizing:border-box; }
+    #main { margin-left:300px; padding:40px; }
+    .lists-wrapper { display: flex; gap: 20px; }
+    .list-column { flex: 1; background: #fff; padding: 20px; border-radius: 15px; min-height: 500px; }
+    .card { border:1px solid #eee; padding:15px; border-radius:12px; margin-bottom:15px; box-shadow:0 2px 5px rgba(0,0,0,0.02); }
+    .card.completed { background:#f9fdfa; border-left: 5px solid #34c759; }
+    .stat { background:var(--blue); color:#fff; padding:15px; border-radius:10px; text-align:center; margin-bottom:10px; }
+    textarea { width:100%; height:60px; margin:10px 0; border-radius:8px; border:1px solid #ddd; padding:8px; box-sizing:border-box; }
+    button { width:100%; padding:10px; border-radius:8px; border:none; background:var(--blue); color:#fff; font-weight:bold; cursor:pointer; }
+    @media (max-width: 1000px) { .lists-wrapper { flex-direction: column; } #side { width:100%; height:auto; position:static; } #main { margin-left:0; } }
   </style>
 </head>
 <body>
-  
   <div id="login-container">
-    <div class="login-box">
-      <h2 style="color:var(--blue); margin-bottom: 5px;">관리자 로그인</h2>
-      <p style="color:#86868b; margin-bottom: 25px;">보안부 선생님 계정으로 로그인하세요.</p>
-      
-      <div id="g_id_onload" 
-           data-client_id="461701933207-l7r5rb5iiuedj2bfabj9v73ceuc3rqm0.apps.googleusercontent.com" 
-           data-callback="handleCredentialResponse"
-           data-auto_prompt="false">
-      </div>
-      <div class="g_id_signin" data-type="standard" data-size="large"></div>
-    </div>
+    <h2 style="color:var(--blue);">관리자 로그인</h2>
+    <div id="g_id_onload" data-client_id="461701933207-l7r5rb5iiuedj2bfabj9v73ceuc3rqm0.apps.googleusercontent.com" data-callback="handleCredentialResponse"></div>
+    <div class="g_id_signin" data-type="standard"></div>
   </div>
 
   <div id="dashboard-container">
-    <div class="mobile-header">
-      <h2 style="font-size:18px; margin:0; color:var(--blue);">정보부 대시보드</h2>
-      <button onclick="openNav()" style="background:none; border:none; font-size:24px; cursor:pointer;">☰</button>
-    </div>
-    
     <div id="side">
-      <span class="close-btn" onclick="closeNav()">&times;</span>
-      <h2 style="color:var(--blue); margin-top:0;">실시간 통계</h2>
-      <p id="admin-info" style="color:#34c759; font-weight:bold; font-size:13px;"></p>
-      
-      <div class="stat-box">
-        <div class="stat"><small>전체 민원</small><br><b id="total" style="font-size:20px;">0</b></div>
-        <div class="stat" style="background:#34c759;"><small>해결 완료</small><br><b id="done" style="font-size:20px;">0</b></div>
-      </div>
-      
+      <h2 style="color:var(--blue);">Dashboard</h2>
+      <div id="admin-info" style="margin-bottom:20px; font-weight:bold; color:#34c759;"></div>
+      <div class="stat"><small>전체</small><br><b id="total" style="font-size:20px;">0</b></div>
+      <div class="stat" style="background:#34c759;"><small>완료</small><br><b id="done" style="font-size:20px;">0</b></div>
       <canvas id="typeChart"></canvas>
-      <canvas id="dayChart" style="margin-top:20px;"></canvas>
-      
-      <button onclick="logout()" style="width:100%; padding:10px; background:#ff3b30; color:#fff; border:none; border-radius:10px; margin-top:30px; font-weight:bold; cursor:pointer;">로그아웃</button>
+      <button onclick="localStorage.clear(); location.reload();" style="background:#ff3b30; margin-top:20px;">로그아웃</button>
     </div>
-    
     <div id="main">
       <div class="lists-wrapper">
-        
-        <div class="list-column">
-          <h2 style="font-size: 19px; margin-top:0; border-left: 5px solid #ffcc00; padding-left: 10px;">⏳ 처리 대기 목록</h2>
-          <div id="pending-list">로딩 중...</div>
-        </div>
-        
-        <div class="list-column" style="background:#f9f9fc;">
-          <h2 style="font-size: 19px; margin-top:0; border-left: 5px solid #34c759; padding-left: 10px; color:#34c759;">✅ 답변 완료 목록</h2>
-          <div id="completed-list">로딩 중...</div>
-        </div>
-
+        <div class="list-column"><h3>⏳ 처리 대기</h3><div id="pending-list"></div></div>
+        <div class="list-column"><h3>✅ 처리 완료</h3><div id="completed-list"></div></div>
       </div>
     </div>
   </div>
 
   <script>
-    // 🔥 [필수 수정] 새로 배포한 GAS 웹 앱 URL을 여기에 꼭 넣어주세요!
-    const API = "https://script.google.com/macros/s/AKfycbzOCYOLXkum4ScTnOs8XiW64o5w03iOXvvbDmcp7V_EI2obsLwNPl9EDopCdP2gPR02/exec";
-    
-    const ALLOWED = [
-        "eisiseu@gmail.com",
-        "serendipis@chungnamhs.djsch.kr",
-        "sunj080407@gmail.com"
-    ];
+    const API = "https://script.google.com/macros/s/AKfycbxBD1Wjg-q6kGhe4YtzEjip_obpl2trbOSBvlS_RkYaBTCy_ZDNJdruB3W4bXDCqtDU/exec"; // 🔥 여기에 새 배포 URL 붙여넣기
+    const ALLOWED = ["eisiseu@gmail.com", "serendipis@chungnamhs.djsch.kr", "sunj080407@gmail.com"];
 
-    window.onload = () => {
-      const email = localStorage.getItem("adminEmail");
-      const name = localStorage.getItem("adminName");
-      if(email && ALLOWED.includes(email)) showDashboard(name);
-    }
+    window.onload = () => { if(ALLOWED.includes(localStorage.getItem("adminEmail"))) showDashboard(localStorage.getItem("adminName")); }
 
-    function handleCredentialResponse(response) {
-      const payloadObj = JSON.parse(decodeURIComponent(escape(atob(response.credential.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))));
-      if(ALLOWED.includes(payloadObj.email)) {
-        localStorage.setItem("adminEmail", payloadObj.email);
-        localStorage.setItem("adminName", payloadObj.name);
-        showDashboard(payloadObj.name);
-      } else {
-        alert("권한이 없는 계정입니다.");
-      }
+    function handleCredentialResponse(r) {
+      const p = JSON.parse(atob(r.credential.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+      if(ALLOWED.includes(p.email)) {
+        localStorage.setItem("adminEmail", p.email);
+        localStorage.setItem("adminName", p.name);
+        showDashboard(p.name);
+      } else { alert("권한 없음"); }
     }
 
     function showDashboard(name) {
-      document.getElementById('login-container').style.display = 'none';
-      document.getElementById('dashboard-container').style.display = 'flex';
+      document.getElementById('login-container').style.display='none';
+      document.getElementById('dashboard-container').style.display='block';
       document.getElementById('admin-info').innerText = `✔️ ${name} 선생님`;
       load();
     }
 
-    function logout() { localStorage.clear(); location.reload(); }
-    function openNav() { document.getElementById("side").classList.add("open"); }
-    function closeNav() { document.getElementById("side").classList.remove("open"); }
-
     async function load() {
-      try {
-        const res = await fetch(API + "?mode=admin_data");
-        const data = await res.json();
-        
-        document.getElementById('total').innerText = data.stats.total;
-        document.getElementById('done').innerText = data.stats.done;
+      const res = await fetch(API + "?mode=admin_data");
+      const data = await res.json();
+      document.getElementById('total').innerText = data.stats.total;
+      document.getElementById('done').innerText = data.stats.done;
 
-        const pendingDiv = document.getElementById('pending-list');
-        const completedDiv = document.getElementById('completed-list');
-        pendingDiv.innerHTML = ""; completedDiv.innerHTML = "";
+      const pList = document.getElementById('pending-list'), cList = document.getElementById('completed-list');
+      pList.innerHTML = ""; cList.innerHTML = "";
 
-        let pCount = 0, cCount = 0;
-
-        data.list.forEach((row) => {
-          // row[8] (I열 체크박스) 값이 true이면 완료 목록으로 분류
-          const isDone = (row[8] === true || row[8] === "TRUE");
-
-          if (isDone) {
-            cCount++;
-            completedDiv.innerHTML += `
-              <div class="card completed">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                  <div><strong>${row[1]} ${row[2]}</strong></div>
-                  <span style="color:#34c759; font-weight:bold; font-size:12px;">완료</span>
-                </div>
-                <p style="color:#555; font-size:14px; margin:10px 0;"><strong>[${row[4]}]</strong> ${row[5]}</p>
-                <div class="answer-box"><strong>선생님 답변:</strong><br>${row[7] || "작성된 답변이 없습니다."}</div>
-              </div>`;
-          } else {
-            pCount++;
-            pendingDiv.innerHTML += `
-              <div class="card">
-                <div style="display:flex; justify-content:space-between;">
-                  <div><strong style="font-size:17px;">${row[1]} ${row[2]}</strong><br><span class="student-email">${row[3] || ""}</span></div>
-                  <span style="color:#0b3190; font-weight:bold; font-size:13px;">[${row[4]}]</span>
-                </div>
-                <p style="margin:15px 0; color:#333;">${row[5]}</p>
-                <textarea id="msg-${row.sheetIndex}" placeholder="학생에게 보낼 답변을 입력하세요..."></textarea>
-                <button class="complete-btn" onclick="completeTask(${row.sheetIndex}, '${row[3]}', '${row[2]}', this)">완료 및 이메일 발송</button>
-              </div>`;
-          }
-        });
-
-        if(pCount === 0) pendingDiv.innerHTML = "<p style='color:#888; text-align:center;'>대기 중인 민원이 없습니다.</p>";
-        if(cCount === 0) completedDiv.innerHTML = "<p style='color:#888; text-align:center;'>아직 완료된 내역이 없습니다.</p>";
-
-      } catch(e) { document.getElementById('pending-list').innerHTML = "데이터 로딩 중 오류가 발생했습니다."; }
+      data.list.forEach(row => {
+        const isDone = (row[8] === true || row[8] === "TRUE");
+        if(isDone) {
+          cList.innerHTML += `<div class="card completed"><strong>${row[1]} ${row[2]}</strong><p>${row[5]}</p><div style="font-size:13px; color:#666;"><b>답변:</b> ${row[7]}</div></div>`;
+        } else {
+          pList.innerHTML += `<div class="card"><strong>${row[1]} ${row[2]}</strong><p>${row[5]}</p><textarea id="msg-${row.sheetIndex}" placeholder="답변 입력..."></textarea><button onclick="completeTask(${row.sheetIndex}, '${row[3]}', '${row[2]}', this)">완료 및 발송</button></div>`;
+        }
+      });
     }
 
-    async function completeTask(index, email, name, btn) {
-      const msg = document.getElementById(`msg-${index}`).value;
-      if(!msg) return alert("답변 내용을 입력해주세요.");
-      if(!confirm("처리를 완료하시겠습니까? (엑셀 체크박스가 자동으로 체크됩니다)")) return;
-
-      btn.disabled = true; btn.innerText = "서버 전송 중...";
-
-      try {
-        const response = await fetch(API, { 
-          method: "POST", 
-          body: JSON.stringify({ action: "complete", rowIdx: index, message: msg, email: email, name: name }) 
-        });
-        
-        alert("처리가 완료되었습니다! (이메일 발송 및 엑셀 체크박스 업데이트 완료)");
-        location.reload(); 
-      } catch (e) {
-        alert("오류가 발생했습니다. 다시 시도해주세요.");
-        btn.disabled = false; btn.innerText = "완료 및 이메일 발송";
-      }
+    async function completeTask(idx, email, name, btn) {
+      const msg = document.getElementById(`msg-${idx}`).value;
+      if(!msg) return alert("답변을 입력해주세요.");
+      btn.disabled = true; btn.innerText = "전송 중...";
+      await fetch(API, { method: "POST", body: JSON.stringify({ action: "complete", rowIdx: idx, message: msg, email: email, name: name })});
+      alert("처리 완료!"); location.reload();
     }
   </script>
 </body>
