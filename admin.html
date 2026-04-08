@@ -14,7 +14,8 @@
     .list-column { flex: 1; }
     .card { background:#fff; border-radius:15px; padding:20px; margin-bottom:20px; box-shadow:0 4px 15px rgba(0,0,0,0.03); border:1px solid #eee; }
     .card.done { border-left: 5px solid #34c759; background: #f9fdfa; }
-    textarea { width:100%; height:80px; margin:10px 0; border-radius:10px; border:1px solid #ddd; padding:10px; box-sizing: border-box; }
+    .email-label { font-size: 12px; color: #888; margin-bottom: 5px; display: block; }
+    textarea { width:100%; height:80px; margin:10px 0; border-radius:10px; border:1px solid #ddd; padding:10px; box-sizing: border-box; font-family: inherit; }
     button { width:100%; padding:12px; background:var(--blue); color:#fff; border:none; border-radius:10px; font-weight:bold; cursor:pointer; }
     #login-screen { position:fixed; top:0; left:0; width:100%; height:100%; background:#fff; display:flex; justify-content:center; align-items:center; z-index:9999; flex-direction:column; }
   </style>
@@ -22,7 +23,7 @@
 <body>
   <div id="login-screen">
     <h2 style="color:var(--blue);">관리자 인증</h2>
-    <div id="g_id_onload" data-client_id="461701933207-l7r5rb5iiuedj2bfabj9v73ceuc3rqm0.apps.googleusercontent.com" data-callback="handleLogin" data-auto_prompt="false"></div>
+    <div id="g_id_onload" data-client_id="461701933207-l7r5rb5iiuedj2bfabj9v73ceuc3rqm0.apps.googleusercontent.com" data-callback="handleLogin"></div>
     <div class="g_id_signin" data-type="standard"></div>
   </div>
 
@@ -42,7 +43,7 @@
   </div>
 
   <script>
-    const API = "https://script.google.com/macros/s/AKfycbylZHjE_K6ehW0bDkqrsx1kc3q-CqNjgxt3e-dqSV1_ylxQCOzBs9QcVgqNL9zzuj87/exec";
+    const API = "https://script.google.com/macros/s/AKfycbyI4yXBLX8_MzHrDNbczcvmsQ_lk6FpNJjAn75IO6qoxbYvZDtwtua46kUFYZQzN00Q/exec";
     const ADMINS = ["eisiseu@gmail.com", "serendipis@chungnamhs.djsch.kr", "sunj080407@gmail.com"];
 
     function handleLogin(r) {
@@ -51,7 +52,7 @@
         localStorage.setItem("adminEmail", p.email);
         localStorage.setItem("adminName", p.name);
         initDashboard(p.name);
-      } else { alert("접근 권한이 없습니다."); }
+      } else { alert("권한이 없습니다."); }
     }
 
     window.onload = () => {
@@ -70,25 +71,64 @@
       const data = await res.json();
       document.getElementById('st-total').innerText = data.stats.total;
       document.getElementById('st-done').innerText = data.stats.done;
+      
       const pList = document.getElementById('pending-list'), cList = document.getElementById('completed-list');
       pList.innerHTML = ""; cList.innerHTML = "";
 
       data.list.forEach(row => {
+        const idx = row[row.length - 1]; // Code.gs에서 보낸 마지막 인덱스
         const isDone = (row[8] === true || String(row[8]).toUpperCase() === "TRUE");
+        
         if(isDone) {
-          cList.innerHTML += `<div class="card done"><strong>${row[2]}</strong><p>${row[5]}</p><div style="background:#eee; padding:10px; border-radius:8px; font-size:13px;"><b>답변:</b> ${row[7]}</div></div>`;
+          cList.innerHTML += `
+            <div class="card done">
+              <span class="email-label">${row[3]}</span>
+              <strong>${row[1]} ${row[2]}</strong>
+              <p style="font-size:14px; color:#666;">${row[5]}</p>
+              <div style="background:#eee; padding:10px; border-radius:8px; font-size:13px;"><b>답변:</b> ${row[7]}</div>
+            </div>`;
         } else {
-          pList.innerHTML += `<div class="card"><strong>${row[2]}</strong><p>${row[5]}</p><textarea id="msg-${row.sheetIndex}" placeholder="답변 입력..."></textarea><button onclick="completeTask(${row.sheetIndex}, '${row[3]}', '${row[2]}', this)">완료 및 전송</button></div>`;
+          pList.innerHTML += `
+            <div class="card">
+              <span class="email-label">${row[3]}</span>
+              <strong>${row[1]} ${row[2]}</strong>
+              <p style="font-size:14px;">${row[5]}</p>
+              <textarea id="msg-${idx}" placeholder="답변을 입력하세요..."></textarea>
+              <button onclick="completeTask(${idx}, '${row[3]}', '${row[2]}', this)">완료 및 전송</button>
+            </div>`;
         }
       });
     }
 
     async function completeTask(idx, email, name, btn) {
-      const msg = document.getElementById(`msg-${idx}`).value;
-      if(!msg) return alert("답변을 입력해주세요.");
-      btn.disabled = true; btn.innerText = "처리 중...";
-      await fetch(API, { method: "POST", body: JSON.stringify({ action: "complete", rowIdx: idx, message: msg, email: email, name: name })});
-      alert("성공적으로 처리되었습니다!"); loadData();
+      const msgInput = document.getElementById(`msg-${idx}`);
+      const msg = msgInput.value.trim();
+      
+      if(!msg) {
+        alert("답변을 입력해주세요.");
+        return;
+      }
+
+      btn.disabled = true; 
+      btn.innerText = "처리 중...";
+      
+      try {
+        const response = await fetch(API, { 
+          method: "POST", 
+          body: JSON.stringify({ action: "complete", rowIdx: idx, message: msg, email: email, name: name })
+        });
+        const result = await response.text();
+        if(result === "Success") {
+          alert("성공적으로 처리되었습니다!");
+          loadData();
+        } else {
+          alert("오류: " + result);
+          btn.disabled = false; btn.innerText = "완료 및 전송";
+        }
+      } catch(e) {
+        alert("네트워크 오류가 발생했습니다.");
+        btn.disabled = false; btn.innerText = "완료 및 전송";
+      }
     }
   </script>
 </body>
