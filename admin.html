@@ -34,21 +34,21 @@
     <div id="side">
       <h2 style="color:var(--blue);">Dashboard</h2>
       <div id="admin-info" style="margin-bottom:20px; font-weight:bold; color:#34c759;"></div>
-      <div class="stat"><small>전체</small><br><b id="total" style="font-size:20px;">0</b></div>
-      <div class="stat" style="background:#34c759;"><small>완료</small><br><b id="done" style="font-size:20px;">0</b></div>
+      <div class="stat"><small>전체 접수</small><br><b id="total" style="font-size:20px;">0</b></div>
+      <div class="stat" style="background:#34c759;"><small>해결 완료</small><br><b id="done" style="font-size:20px;">0</b></div>
       <canvas id="typeChart"></canvas>
       <button onclick="localStorage.clear(); location.reload();" style="background:#ff3b30; margin-top:20px;">로그아웃</button>
     </div>
     <div id="main">
       <div class="lists-wrapper">
-        <div class="list-column"><h3>⏳ 처리 대기</h3><div id="pending-list"></div></div>
-        <div class="list-column"><h3>✅ 처리 완료</h3><div id="completed-list"></div></div>
+        <div class="list-column"><h3>⏳ 처리 대기</h3><div id="pending-list">데이터 로딩 중...</div></div>
+        <div class="list-column"><h3>✅ 답변 완료</h3><div id="completed-list">데이터 로딩 중...</div></div>
       </div>
     </div>
   </div>
 
   <script>
-    const API = "https://script.google.com/macros/s/AKfycbxBD1Wjg-q6kGhe4YtzEjip_obpl2trbOSBvlS_RkYaBTCy_ZDNJdruB3W4bXDCqtDU/exec"; // 🔥 여기에 새 배포 URL 붙여넣기
+    const API = "https://script.google.com/macros/s/AKfycbzC2lJ76ZV_TyaY6ovQNpcKAQnmAmP2bMd8vMoB9Gio0_3ckJkDNsGcsgaKEwi2oBZ7/exec";
     const ALLOWED = ["eisiseu@gmail.com", "serendipis@chungnamhs.djsch.kr", "sunj080407@gmail.com"];
 
     window.onload = () => { if(ALLOWED.includes(localStorage.getItem("adminEmail"))) showDashboard(localStorage.getItem("adminName")); }
@@ -59,7 +59,7 @@
         localStorage.setItem("adminEmail", p.email);
         localStorage.setItem("adminName", p.name);
         showDashboard(p.name);
-      } else { alert("권한 없음"); }
+      } else { alert("권한이 없습니다."); }
     }
 
     function showDashboard(name) {
@@ -81,9 +81,9 @@
       data.list.forEach(row => {
         const isDone = (row[8] === true || row[8] === "TRUE");
         if(isDone) {
-          cList.innerHTML += `<div class="card completed"><strong>${row[1]} ${row[2]}</strong><p>${row[5]}</p><div style="font-size:13px; color:#666;"><b>답변:</b> ${row[7]}</div></div>`;
+          cList.innerHTML += `<div class="card completed"><strong>${row[1]} ${row[2]}</strong><p>${row[5]}</p><div style="font-size:13px; color:#666; background:#eee; padding:10px; border-radius:8px;"><b>답변:</b> ${row[7]}</div></div>`;
         } else {
-          pList.innerHTML += `<div class="card"><strong>${row[1]} ${row[2]}</strong><p>${row[5]}</p><textarea id="msg-${row.sheetIndex}" placeholder="답변 입력..."></textarea><button onclick="completeTask(${row.sheetIndex}, '${row[3]}', '${row[2]}', this)">완료 및 발송</button></div>`;
+          pList.innerHTML += `<div class="card"><strong>${row[1]} ${row[2]}</strong><p>${row[5]}</p><textarea id="msg-${row.sheetIndex}" placeholder="학생에게 보낼 답변 입력..."></textarea><button onclick="completeTask(${row.sheetIndex}, '${row[3]}', '${row[2]}', this)">완료 및 메일 발송</button></div>`;
         }
       });
     }
@@ -91,9 +91,10 @@
     async function completeTask(idx, email, name, btn) {
       const msg = document.getElementById(`msg-${idx}`).value;
       if(!msg) return alert("답변을 입력해주세요.");
-      btn.disabled = true; btn.innerText = "전송 중...";
+      if(!confirm("처리를 완료하고 메일을 발송할까요?")) return;
+      btn.disabled = true; btn.innerText = "처리 중...";
       await fetch(API, { method: "POST", body: JSON.stringify({ action: "complete", rowIdx: idx, message: msg, email: email, name: name })});
-      alert("처리 완료!"); location.reload();
+      alert("성공적으로 처리되었습니다!"); location.reload();
     }
   </script>
 </body>
